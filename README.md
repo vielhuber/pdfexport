@@ -103,8 +103,8 @@ $pdf->add('<!DOCTYPE html><html><body><div>body with %placeholder1%</div></body>
         'placeholder3' => 'baz'
     ]);
 
-// the cool part is that this is also very performant (because it results only in 1 subcommand)
-foreach(range(0,1000) as $i)
+// the cool part is that this is also very performant (because this results only in only a few subcommand)
+foreach(range(0,5000) as $i)
 {
     $pdf->add('file.html')
         ->header('header.html', 30)
