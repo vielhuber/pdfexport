@@ -8,7 +8,7 @@ pdfexport exports pdfs.
 - can merge/grayscale/fill pdfs
 - individual headers per page possible
 - very fast (because of combining commands)
-- overcomes the 8192 command line character limit on windows
+- overcomes command line / process limits
 
 ## Requirements
 
