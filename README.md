@@ -27,13 +27,15 @@ you also can provide custom paths to underlying libs:
 ```php
 $_ENV['WKHTMLTOPDF'] = 'C:\wkhtmltopdf\bin\wkhtmltopdf.exe';
 $_ENV['PDFTK'] = 'C:\pdftk\bin\pdftk.exe';
+$_ENV['GHOSTSCRIPT'] = 'C:\Program Files\GS\gs9.22\bin\gswin64c.exe';
+$_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
 ```
 
 ## Usage
 
+```php
 $pdf = new PDFExport;
 
-```php
 // add a static pdf
 $pdf->add('file.pdf');
 
@@ -41,14 +43,25 @@ $pdf->add('file.pdf');
 $pdf->add('file.pdf')
     ->data([
         'placeholder1' => 'foo',
-        'placeholder1' => 'bar'
+        'placeholder2' => 'bar'
+    ]);
+
+// add multiple portions of data
+$pdf->add('file.pdf')
+    ->data([
+        'placeholder1' => 'foo',
+        'placeholder2' => 'bar'
+    ])
+    ->data([
+        'placeholder3' => 'foo',
+        'placeholder4' => 'bar'
     ]);
 
 // do the same but grayscale the page
 $pdf->add('file.pdf')
     ->data([
         'placeholder1' => 'foo',
-        'placeholder1' => 'bar'
+        'placeholder2' => 'bar'
     ])
     ->grayscale();
 
@@ -56,12 +69,15 @@ $pdf->add('file.pdf')
 $pdf->add('file.pdf')
     ->data([
         'placeholder1' => 'foo',
-        'placeholder1' => 'bar'
+        'placeholder2' => 'bar'
     ])
     ->grayscale(80);
 
 // add a html file
 $pdf->add('file.html');
+
+// strings are interpreted as html code
+$pdf->add('<html><head><title>.</title></head><body>foo</body></html>');
 
 // add a html file and replace placeholders (%placeholder%)
 $pdf->add('file.html')
@@ -70,7 +86,7 @@ $pdf->add('file.html')
         'placeholder2' => 'bar'
     ]);
 
-// add a html file with a header and footer with a height of 30mm
+// add a html file with a header and footer with a height of 30mm (there also can be placeholders in the header/footer!)
 $pdf->add('file.html')
     ->header('header.html', 30)
     ->footer('footer.html', 30)
@@ -93,7 +109,7 @@ foreach(range(0,1000) as $i)
 
 $pdf->download();
 $pdf->download('filename.pdf');
-$pdf->save();
 $pdf->save('filename.pdf');
+$random_filename = $pdf->save();
 $pdf->base64();
 ```
