@@ -44,20 +44,20 @@ $_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
 ## Usage
 
 ```php
-$pdf = new PDFExport;
+$pdf = new pdfexport;
 
 // add a static pdf
-$pdf->add('file.pdf');
+$pdf->add('tests/file.pdf');
 
 // add a static pdf and fill out the form
-$pdf->add('file.pdf')
+$pdf->add('tests/file.pdf')
     ->data([
         'placeholder1' => 'foo',
         'placeholder2' => 'bar'
     ]);
 
 // add multiple portions of data
-$pdf->add('file.pdf')
+$pdf->add('tests/file.pdf')
     ->data([
         'placeholder1' => 'This is a test',
         'placeholder2' => 'This is a multiline\ntest1\ntest2\ntest3\ntest4\ntest5\ntest6\ntest7\ntest8\ntest9\ntest10'
@@ -67,27 +67,27 @@ $pdf->add('file.pdf')
     ]);
 
 // do the same but grayscale the page
-$pdf->add('file.pdf')
+$pdf->add('tests/file.pdf')
     ->grayscale();
 
 // grayscale (not vector) with a resolution of 80%
-$pdf->add('file.pdf')
+$pdf->add('tests/file.pdf')
     ->grayscale(80);
 
 // add a html file
-$pdf->add('file.html');
+$pdf->add('tests/file.html');
 
 // add a html file and replace placeholders (%placeholder%)
-$pdf->add('file.html')
+$pdf->add('tests/file.html')
     ->data([
         'placeholder1' => 'foo',
         'placeholder2' => 'bar'
     ]);
 
 // add a html file with a header and footer with a height of 30mm (there also can be placeholders in the header/footer)
-$pdf->add('file.html')
-    ->header('header.html', 30)
-    ->footer('footer.html', 30)
+$pdf->add('tests/file.html')
+    ->header('tests/header.html', 30)
+    ->footer('tests/footer.html', 30)
     ->data([
         'placeholder1' => 'foo',
         'placeholder2' => 'bar'
@@ -106,9 +106,9 @@ $pdf->add('<!DOCTYPE html><html><body><div>body with %placeholder1%</div></body>
 // the cool part is that this is also very performant (because this results only in only a few subcommand)
 foreach(range(0,5000) as $i)
 {
-    $pdf->add('file.html')
-        ->header('header.html', 30)
-        ->footer('footer.html', 30)
+    $pdf->add('tests/file.html')
+        ->header('tests/header.html', 30)
+        ->footer('tests/footer.html', 30)
         ->data([
             'placeholder1' => 'foo',
             'placeholder2' => 'bar'
@@ -116,9 +116,9 @@ foreach(range(0,5000) as $i)
 }
 
 $pdf->download();
-$pdf->download('filename.pdf');
-$pdf->save('filename.pdf');
+$pdf->download('tests/output.pdf');
+$pdf->save('tests/output.pdf');
 $pdf->base64();
 $random_filename = $pdf->save();
-PDFExport::count($random_filename) // 1
+$pdf->count($random_filename); // 1
 ```
