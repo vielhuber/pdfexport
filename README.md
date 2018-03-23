@@ -41,6 +41,16 @@ $_ENV['GHOSTSCRIPT'] = 'C:\Program Files\GS\gs9.22\bin\gswin64c.exe';
 $_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
 ```
 
+and can overcome *nix limits by increasing the ulimit for open files:
+```
+ulimit -n 999999
+```
+you can do this permanently inside /etc/security/limits.conf:
+```
+* - nofile 999999
+```
+
+
 ## Usage
 
 ```php
@@ -103,8 +113,8 @@ $pdf->add('<!DOCTYPE html><html><body><div>body with %placeholder1%</div></body>
         'placeholder3' => 'baz'
     ]);
 
-// the cool part is that this is also very performant (because this results only in only a few subcommand)
-foreach(range(0,5000) as $i)
+// the cool part is that this is also very performant (because this results only in only a few subcommands)
+foreach(range(0,2500) as $i)
 {
     $pdf->add('tests/file.html')
         ->header('tests/header.html', 30)

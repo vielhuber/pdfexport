@@ -272,8 +272,8 @@ class pdfexport
                 {
                     $loop = false;
                 }
-                // do not fetch more than 1000 (enough is enough, especially on windows)
-                elseif( count($fetched) > 1000 )
+                // do not fetch more than 500 (enough is enough, especially on windows)
+                elseif( count($fetched) > 500 )
                 {
                     $loop = false;
                 }
@@ -472,7 +472,7 @@ class pdfexport
         {
             throw new \Exception('file does not exist');
         }
-        $pages = $this->exec('pdftk', $filename.' dump_data | findstr NumberOfPages');
+        $pages = $this->exec('pdftk', $filename.' dump_data | '.(($this->os()==='windows')?('findstr'):('grep')).' NumberOfPages');
         $pages = preg_replace('/[^0-9,.]/', '', $pages);
         return $pages;
     }
