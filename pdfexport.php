@@ -3,10 +3,12 @@ class PDFExport
 {
 
     private $data = [];
+    private $session = null;
 
     public function __construct()
     {
         file_put_contents('log.txt','');
+        $this->session = uniqid();
     }
 
     public function add($content)
@@ -31,9 +33,11 @@ class PDFExport
         }
         else
         {
+            $filename = $this->filename('html');
+            file_put_contents($filename, $content);
             $this->data[] = [
                 'type' => 'html',
-                'content' => $content
+                'filename' => $filename
             ];
         }
 
@@ -57,19 +61,19 @@ class PDFExport
         return $this;
     }
 
-    public function header($filename, $height = 30)
+    public function header($content, $height = 30)
     {
-        $this->header_footer('header', $filename, $height);        
+        $this->header_footer('header', $content, $height);        
         return $this;
     }
 
-    public function footer($filename, $height = 30)
+    public function footer($content, $height = 30)
     {
-        $this->header_footer('footer', $filename, $height);
+        $this->header_footer('footer', $content, $height);
         return $this;
     }
 
-    private function header_footer($type, $filename, $height)
+    private function header_footer($type, $content, $height)
     {
         if( empty($this->data) )
         {
@@ -79,13 +83,22 @@ class PDFExport
         {
             throw new \Exception('wrong type');
         }
-        if( !file_exists($filename) )
+        if( $content === null || $content == '' )
         {
-            throw new \Exception($type.' file missing');
+            throw new \Exception('content missing');
         }
-        if( strrpos($filename, '.html') !== (mb_strlen($filename)-mb_strlen('.html')) )
+        if( strrpos($content, '.html') === (mb_strlen($content)-mb_strlen('.html')) )
         {
-            throw new \Exception('you only can add html files as a '.$type);
+            if(!file_exists($content))
+            {
+                throw new \Exception('file does not exist');
+            }
+            $filename = $content;
+        }
+        else
+        {
+            $filename = $this->filename('html');
+            file_put_contents($filename, $content);
         }
         if( $this->data[count($this->data)-1]['type'] !== 'html' )
         {
@@ -137,9 +150,9 @@ class PDFExport
         header('Content-type: application/pdf');
         header('Content-Disposition: inline; filename="'.$filename.'.pdf"');
         header('Content-Transfer-Encoding: binary');
-        header('Content-Length: '.filesize($this->filename('final.pdf')));
+        header('Content-Length: '.filesize($this->filename('pdf','final')));
         header('Accept-Ranges: bytes');
-        readfile($this->filename('final.pdf'));
+        readfile($this->filename('pdf','final'));
         die();
     }
 
@@ -150,7 +163,7 @@ class PDFExport
         {
             $filename = date('Y-m-d_H-i-s',strtotime('now')).'.pdf';
         }
-        copy( $this->filename('final.pdf'), $filename );
+        copy( $this->filename('pdf','final'), $filename );
         if( $filename === null )
         {
             return $filename;
@@ -161,7 +174,7 @@ class PDFExport
     public function base64()
     {
         $this->process();
-        return base64_encode($this->filename('final.pdf'));
+        return base64_encode($this->filename('pdf','final'));
     }
 
     public function debug()
@@ -182,7 +195,7 @@ class PDFExport
         $files = [];
         $pointer = 0;
         while( $this->generateAndRunNextMergedCommand($pointer, $files) ) {}
-        $this->exec('pdftk', implode(' ',$files).' cat output '.$this->filename('final.pdf'));
+        $this->exec('pdftk', implode(' ',$files).' cat output '.$this->filename('pdf','final'));
     }
 
     private function generateAndRunNextMergedCommand(&$pointer, &$files)
@@ -194,34 +207,173 @@ class PDFExport
             return false;
         }
 
+        $current = $this->data[$pointer];
+
         // a pdf without data
         if(
-            $this->data[$pointer]['type'] === 'pdf' &&
-            array_key_exists('filename',$this->data[$pointer]) && $this->data[$pointer]['filename'] != '' &&
-            (!array_key_exists('data',$this->data[$pointer]) || empty($this->data[$pointer]['data']))
+            $current['type'] === 'pdf' &&
+            array_key_exists('filename',$current) && $current['filename'] != '' &&
+            (!array_key_exists('data',$current) || empty($current['data']))
         )
         {
-            $filename = $this->filename('pdf');
-            copy( $this->data[$pointer]['filename'], $filename );
-            $files[] = $filename;
+            copy( $current['filename'], $this->filename('pdf', $pointer) );
+            $files[] = $this->filename('pdf', $pointer);
         }
 
         // a pdf with data
-        
+        if(
+            $current['type'] === 'pdf' &&
+            array_key_exists('filename',$current) && $current['filename'] != '' &&
+            array_key_exists('data',$current) && !empty($current['data'])
+        )
+        {
+            $fdf = [];
+            $fdf[] = '%FDF-1.2';
+            $fdf[] = '1 0 obj<</FDF<< /Fields[';
+            foreach($current['data'] as $data__key=>$data__value)
+            {
+                $fdf[] = '<</T('.$data__key.')/V('.$data__value.')>>';
+            }
+            $fdf[] = '] >> >>';
+            $fdf[] = 'endobj';
+            $fdf[] = 'trailer';
+            $fdf[] = '<</Root 1 0 R>>';
+            $fdf[] = '%%EOF';
+            $fdf = implode("\n",$fdf);
+            file_put_contents($this->filename('fdf', $pointer), utf8_decode($fdf));
+            $this->exec('pdftk', $current['filename'].' fill_form '.$this->filename('fdf', $pointer).' output '.$this->filename('pdf', $pointer).' flatten');
+            $files[] = $this->filename('pdf', $pointer);
+        }
 
-        // finally: grayscale
-        if( array_key_exists('grayscale',$this->data[$pointer]) && !empty($this->data[$pointer]['grayscale']) )
+        // html
+        if( $current['type'] === 'html' )
+        {
+            // fetch as many as possible
+            $fetched = [];            
+            $loop = true;
+            while($loop)
+            {                
+                if( !isset($this->data[$pointer]) )
+                {
+                    $loop = false;
+                }
+                elseif( $this->data[$pointer]['type'] !== 'html' )
+                {
+                    $loop = false;
+                }
+                // do not fetch more than 1000 (enough is enough, especially on windows)
+                elseif( count($fetched) > 1000 )
+                {
+                    $loop = false;
+                }
+                elseif(
+                    ( array_key_exists('grayscale', $current) && array_key_exists('grayscale', $this->data[$pointer]) && $current['grayscale'] != $this->data[$pointer]['grayscale'] ) ||
+                    ( array_key_exists('grayscale', $current) && !array_key_exists('grayscale', $this->data[$pointer]) ) ||
+                    ( !array_key_exists('grayscale', $current) && array_key_exists('grayscale', $this->data[$pointer]) )
+                )
+                {
+                    $loop = false;
+                }
+                elseif(
+                    ( array_key_exists('header', $current) && array_key_exists('header', $this->data[$pointer]) && $current['header']['height'] != $this->data[$pointer]['header']['height'] ) ||
+                    ( array_key_exists('header', $current) && !array_key_exists('header', $this->data[$pointer]) ) ||
+                    ( !array_key_exists('header', $current) && array_key_exists('header', $this->data[$pointer]) )
+                )
+                {
+                    $loop = false;
+                }
+                elseif(
+                    ( array_key_exists('footer', $current) && array_key_exists('footer', $this->data[$pointer]) && $current['footer']['height'] != $this->data[$pointer]['footer']['height'] ) ||
+                    ( array_key_exists('footer', $current) && !array_key_exists('footer', $this->data[$pointer]) ) ||
+                    ( !array_key_exists('footer', $current) && array_key_exists('footer', $this->data[$pointer]) )
+                )
+                {
+                    $loop = false;
+                }
+                else
+                {
+                    $fetched_this = [];
+                    $fetched_this['body'] = $this->data[$pointer]['filename'];
+                    if( array_key_exists('header', $this->data[$pointer]) )
+                    {
+                        $fetched_this['header'] = $this->data[$pointer]['header']['filename'];
+                    }
+                    if( array_key_exists('footer', $this->data[$pointer]) )
+                    {
+                        $fetched_this['footer'] = $this->data[$pointer]['footer']['filename'];
+                    }                   
+                    foreach($fetched_this as $fetched_this__key=>$fetched_this__value)
+                    {
+                        $content = file_get_contents($fetched_this__value);
+                        if( array_key_exists('data', $this->data[$pointer]) )
+                        {
+                            foreach($this->data[$pointer]['data'] as $data__key=>$data__value)
+                            {
+                                $content = str_replace('%'.$data__key.'%', $data__value, $content);
+                            }
+                        }
+                        file_put_contents( $this->filename('html',$fetched_this__key.'_'.$pointer), $content );
+                        $fetched_this[$fetched_this__key] = $this->filename('html',$fetched_this__key.'_'.$pointer);
+                    }
+                    $fetched[] = $fetched_this;
+                    $pointer++;
+                }
+            }
+            $pointer--;
+
+            $command = '';
+            $command .= '--disable-smart-shrinking ';
+            if( array_key_exists('header', $current) )
+            {
+                $command .= '--margin-top "'.$current['header']['height'].'mm" ';
+            }
+            else
+            {
+                $command .= '--margin-top "0mm" ';
+            }
+            if( array_key_exists('footer', $current) )
+            {
+                $command .= '--margin-bottom "'.$current['footer']['height'].'mm" ';
+            }
+            else
+            {
+                $command .= '--margin-bottom "0mm" ';
+            }
+            $command .= '--margin-left "0mm" ';
+            $command .= '--margin-right "0mm" ';
+            $command .= '--orientation "Portrait" ';
+            $command .= '--page-size "A4" ';
+            $command .= '--quiet ';
+            foreach($fetched as $fetched__value)
+            {
+                $command .= '"'.$fetched__value['body'].'" ';
+                if( isset($fetched__value['header']) )
+                {
+                    $command .= '--header-html "'.$fetched__value['header'].'" ';
+                }
+                if( isset($fetched__value['footer']) )
+                {
+                    $command .= '--footer-html "'.$fetched__value['footer'].'" ';
+                }
+            }
+            $command .= '"'.$this->filename('pdf', $pointer).'"';
+            $this->exec('wkhtmltopdf', $command);
+            $files[] = $this->filename('pdf', $pointer);
+        }
+
+        // grayscale
+        if( array_key_exists('grayscale',$current) && !empty($current['grayscale']) )
         {
             $target = $files[count($files)-1];
             $source = $this->filename('pdf');
             copy( $target, $source );
-            if( $this->data[$pointer]['grayscale']['type'] === 'vector' )
+            if( $current['grayscale']['type'] === 'vector' )
             {
                 $this->exec('ghostscript', '-sOutputFile='.$target.' -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dAutoRotatePages=/None -dNOPAUSE -dBATCH '.$source);
             }
-            elseif( $this->data[$pointer]['grayscale']['type'] === 'pixel' )
+            elseif( $current['grayscale']['type'] === 'pixel' )
             {
-                $quality = $this->data[$pointer]['grayscale']['quality'];
+                $quality = $current['grayscale']['quality'];
                 $density = 72+((300-72)*($quality/100));
                 $this->exec('imagemagick', '-density '.$density.' '.$source.' -colorspace GRAY '.$target); 
             }
@@ -230,16 +382,6 @@ class PDFExport
         $pointer++;
 
         return true;
-
-        /*
-        $filename = $this->filename('pdf');
-        copy( 'tests/1.pdf', $filename );
-        $files[] = $filename;
-
-        $filename = $this->filename('pdf');
-        copy( 'tests/1.pdf', $filename );
-        $files[] = $filename;
-        */
 
     }
 
@@ -263,9 +405,20 @@ class PDFExport
                 'imagemagick' => 'convert'
             ][$program];
         }
-        $run .= '"'.' '.$command;
-        exec($run);
+        $run .= '"';
+        $run .= ' ';
+        // wkhtmltopdf provides a way to insert long commands via txt file
+        if( $program === 'wkhtmltopdf' )
+        {
+            // replace backslash with forward slash
+            $command = str_replace('\\','/',$command);
+            file_put_contents( $this->filename('txt','command'), $command );
+            $command = '--read-args-from-stdin < '.$this->filename('txt','command');
+        }
+        $run .= $command;
         $this->log($run);
+        $ret = exec($run);
+        return $ret;
     }
 
     private function log($str)
@@ -277,25 +430,36 @@ class PDFExport
         file_put_contents('log.txt',$str."\n".file_get_contents('log.txt'));
     }
 
-    private function filename($str = null)
+    private function os()
     {
-        if( $str === null )
+        if( stristr(PHP_OS, 'DAR') ) { return 'mac'; }
+        if( stristr(PHP_OS, 'WIN') ) { return 'windows'; }
+        if( stristr(PHP_OS, 'LINUX') ) { return 'linux'; }
+        return 'unknown';
+    }
+
+    private function filename($extension, $id = null)
+    {
+        if( !in_array($extension, ['html','pdf','fdf','sh','bat','txt']) )
         {
-            return sys_get_temp_dir().'/'.md5(uniqid());
+            throw new \Exception('unknown extension');
         }
-        if( $str === 'pdf' || $str === 'html' )
+        if( $id === null )
         {
-            return sys_get_temp_dir().'/'.md5(uniqid()).'.'.$str;
+            $id = uniqid();
         }
-        if( strrpos($str, '.html') === (mb_strlen($str)-mb_strlen('.html')) )
+        return sys_get_temp_dir().'/'.md5($this->session.'_'.$id).'.'.$extension;
+    }
+
+    public function count($filename)
+    {
+        if( !file_exists($filename) )
         {
-            return sys_get_temp_dir().'/'.md5($str).'.html';
+            throw new \Exception('file does not exist');
         }
-        if( strrpos($str, '.pdf') === (mb_strlen($str)-mb_strlen('.pdf')) )
-        {
-            return sys_get_temp_dir().'/'.md5($str).'.pdf';
-        }
-        throw new \Exception('cannot create filename');
+        $pages = $this->exec('pdftk', $filename.' dump_data | findstr NumberOfPages');
+        $pages = preg_replace('/[^0-9,.]/', '', $pages);
+        return $pages;
     }
 
 }
@@ -305,57 +469,94 @@ $_ENV['PDFTK'] = 'C:\pdftk\bin\pdftk.exe';
 $_ENV['GHOSTSCRIPT'] = 'C:\Program Files\GS\gs9.22\bin\gswin64c.exe';
 $_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
 
+
+
+
 $pdf = new PDFExport;
 
+// add a static pdf
 $pdf->add('tests/1.pdf');
 
-$pdf->add('tests/1.pdf');
+// add a static pdf and fill out the form
+$pdf->add('tests/1.pdf')
+    ->data([
+        'placeholder1' => 'foo',
+        'placeholder2' => 'bar'
+    ]);
 
-$pdf->add('tests/1.pdf')->grayscale();
 
-$pdf->add('tests/1.pdf')->grayscale(10);
+// add multiple portions of data
+$pdf->add('tests/1.pdf')
+    ->data([
+        'placeholder1' => 'This is a test',
+        'placeholder2' => 'Thisßßä is a multiline\ntest1\ntest2\ntest3\ntest4\ntest5\ntest6\ntest7\ntest8\ntest9\ntest10'
+    ])
+    ->data([
+        'placeholder3' => 'This is Sonderzeichen ß täst!'
+    ]);
+
+
+// do the same but grayscale the page
+$pdf->add('tests/1.pdf')
+    ->grayscale();
+
+
+// grayscale (not vector) with a resolution of 80%
+$pdf->add('tests/1.pdf')
+    ->grayscale(80);
+
+
+// add a html file
+$pdf->add('tests/1.html');
+
+
+// add a html file and replace placeholders (%placeholder%)
+$pdf->add('tests/1.html')
+    ->data([
+        'placeholder1' => 'foo',
+        'placeholder2' => 'bar'
+    ]);
+
+
+// add a html file with a header and footer with a height of 30mm (there also can be placeholders in the header/footer)
+$pdf->add('tests/1.html')
+    ->header('tests/header.html', 30)
+    ->footer('tests/footer.html', 30)
+    ->data([
+        'placeholder1' => 'foo',
+        'placeholder2' => 'bar'
+    ]);
+    
+
+// strings are interpreted as html code
+$pdf->add('<!DOCTYPE html><html><body><div>body with %placeholder1%</div></body></html>')
+    ->header('<!DOCTYPE html><html><body><div style="height:30mm;">header with %placeholder2%</div></body></html>')
+    ->footer('<!DOCTYPE html><html><body><div style="height:30mm;">footer with %placeholder3%</div></body></html>')
+    ->data([
+        'placeholder1' => 'foo',
+        'placeholder2' => 'bar',
+        'placeholder3' => 'baz',
+    ]);
 
 $pdf->add('tests/1.pdf')
     ->data([
         'placeholder1' => 'foo',
         'placeholder2' => 'bar'
-    ])
-    ->data([
-        'placeholder1' => 'foo',
-        'placeholder3' => 'bar'
     ]);
 
-$pdf->add('tests/1.pdf')
-    ->data([
-        'placeholder1' => 'foo',
-        'placeholder3' => 'bar'
-    ]);
 
-$pdf->add('tests/1.html');
-
-$pdf->add('<html><head><title>.</title></head><body>foo</body></html>');
-
-$pdf->add('tests/1.html')
-    ->header('tests/header.html')
-    ->footer('tests/footer.html')
-    ->data([
-        'placeholder1' => 'foo',
-        'placeholder3' => 'bar'
-    ]);
-
-$pdf->add('tests/1.pdf')
-    ->data([
-        'placeholder1' => 'foo',
-        'placeholder3' => 'bar'
-    ])
-    ->grayscale();
-
-$pdf->add('tests/1.pdf')
-    ->data([
-        'placeholder1' => 'foo',
-        'placeholder3' => 'bar'
-    ])
-    ->grayscale(50);
+// the cool part is that this is also very performant (because it results only in 1 subcommand)
+foreach(range(0,5000) as $i)
+{
+    $pdf->add('tests/1.html')
+        ->header('tests/header.html', 30)
+        ->footer('tests/footer.html', 30)
+        ->data([
+            'placeholder1' => 'foo',
+            'placeholder2' => 'bar'
+        ]);
+}
 
 $pdf->download();
+
 $pdf->debug();

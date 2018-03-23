@@ -8,6 +8,7 @@ pdfexport exports pdfs.
 - can merge/grayscale/fill pdfs
 - individual headers per page possible
 - very fast (because of combining commands)
+- overcomes the 8192 command line character limit on windows
 
 ## Requirements
 
@@ -38,6 +39,11 @@ $_ENV['PDFTK'] = 'C:\pdftk\bin\pdftk.exe';
 $_ENV['WKHTMLTOPDF'] = 'C:\wkhtmltopdf\bin\wkhtmltopdf.exe';
 $_ENV['GHOSTSCRIPT'] = 'C:\Program Files\GS\gs9.22\bin\gswin64c.exe';
 $_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
+```
+
+and overcome limits on *nix systems with
+```
+ulimit -n 100000
 ```
 
 ## Usage
@@ -76,9 +82,6 @@ $pdf->add('file.pdf')
 // add a html file
 $pdf->add('file.html');
 
-// strings are interpreted as html code
-$pdf->add('<html><head><title>.</title></head><body>foo</body></html>');
-
 // add a html file and replace placeholders (%placeholder%)
 $pdf->add('file.html')
     ->data([
@@ -86,13 +89,23 @@ $pdf->add('file.html')
         'placeholder2' => 'bar'
     ]);
 
-// add a html file with a header and footer with a height of 30mm (there also can be placeholders in the header/footer!)
+// add a html file with a header and footer with a height of 30mm (there also can be placeholders in the header/footer)
 $pdf->add('file.html')
     ->header('header.html', 30)
     ->footer('footer.html', 30)
     ->data([
         'placeholder1' => 'foo',
         'placeholder2' => 'bar'
+    ]);
+
+// strings are interpreted as html code
+$pdf->add('<!DOCTYPE html><html><body><div>body with %placeholder1%</div></body></html>')
+    ->header('<!DOCTYPE html><html><body><div style="height:30mm;">header with %placeholder2%</div></body></html>')
+    ->footer('<!DOCTYPE html><html><body><div style="height:30mm;">footer with %placeholder3%</div></body></html>')
+    ->data([
+        'placeholder1' => 'foo',
+        'placeholder2' => 'bar',
+        'placeholder3' => 'baz'
     ]);
 
 // the cool part is that this is also very performant (because it results only in 1 subcommand)
@@ -110,6 +123,7 @@ foreach(range(0,1000) as $i)
 $pdf->download();
 $pdf->download('filename.pdf');
 $pdf->save('filename.pdf');
-$random_filename = $pdf->save();
 $pdf->base64();
+$random_filename = $pdf->save();
+PDFExport::count($random_filename) // 1
 ```
