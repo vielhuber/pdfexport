@@ -73,7 +73,7 @@ class Test extends \PHPUnit\Framework\TestCase
             ]);
 
         // the cool part is that this is also very performant (because this results only in only a few subcommand)
-        foreach(range(0,5000) as $i)
+        foreach(range(0,1500) as $i)
         {
             $pdf->add('tests/file.html')
                 ->header('tests/header.html', 30)
@@ -85,7 +85,7 @@ class Test extends \PHPUnit\Framework\TestCase
         }
 
         $pdf->save('tests/output.pdf');
-        $this->assertEquals( $pdf->count('tests/output.pdf'), 5010 );
+        $this->assertEquals( $pdf->count('tests/output.pdf'), 1510 );
 
     }
 
