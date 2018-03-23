@@ -25,8 +25,8 @@ use vielhuber\pdfexport\pdfexport;
 you also can provide custom paths to underlying libs:
 
 ```php
-$_ENV['WKHTMLTOPDF'] = 'C:\wkhtmltopdf\bin\wkhtmltopdf.exe';
 $_ENV['PDFTK'] = 'C:\pdftk\bin\pdftk.exe';
+$_ENV['WKHTMLTOPDF'] = 'C:\wkhtmltopdf\bin\wkhtmltopdf.exe';
 $_ENV['GHOSTSCRIPT'] = 'C:\Program Files\GS\gs9.22\bin\gswin64c.exe';
 $_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
 ```
@@ -49,28 +49,19 @@ $pdf->add('file.pdf')
 // add multiple portions of data
 $pdf->add('file.pdf')
     ->data([
-        'placeholder1' => 'foo',
-        'placeholder2' => 'bar'
+        'placeholder1' => 'This is a test',
+        'placeholder2' => 'This is a multiline\ntest1\ntest2\ntest3\ntest4\ntest5\ntest6\ntest7\ntest8\ntest9\ntest10'
     ])
     ->data([
-        'placeholder3' => 'foo',
-        'placeholder4' => 'bar'
+        'placeholder3' => 'This is Sonderzeichen ß täst!'
     ]);
 
 // do the same but grayscale the page
 $pdf->add('file.pdf')
-    ->data([
-        'placeholder1' => 'foo',
-        'placeholder2' => 'bar'
-    ])
     ->grayscale();
 
 // grayscale (not vector) with a resolution of 80%
 $pdf->add('file.pdf')
-    ->data([
-        'placeholder1' => 'foo',
-        'placeholder2' => 'bar'
-    ])
     ->grayscale(80);
 
 // add a html file

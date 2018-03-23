@@ -206,6 +206,9 @@ class PDFExport
             $files[] = $filename;
         }
 
+        // a pdf with data
+        
+
         // finally: grayscale
         if( array_key_exists('grayscale',$this->data[$pointer]) && !empty($this->data[$pointer]['grayscale']) )
         {
