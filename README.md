@@ -41,11 +41,6 @@ $_ENV['GHOSTSCRIPT'] = 'C:\Program Files\GS\gs9.22\bin\gswin64c.exe';
 $_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
 ```
 
-and overcome limits on *nix systems with
-```
-ulimit -n 100000
-```
-
 ## Usage
 
 ```php
