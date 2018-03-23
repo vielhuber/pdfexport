@@ -1,4 +1,4 @@
-pdfexport exports pdfs utilizing pdftk and wkhtmltopdf.
+pdfexport exports pdfs.
 
 ## Features
 
@@ -6,6 +6,13 @@ pdfexport exports pdfs utilizing pdftk and wkhtmltopdf.
 - can merge/grayscale/fill pdfs
 - individual headers per page possible
 - very fast (because of combining commands)
+
+## Requirements
+
+- [pdftk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/)
+- [wkhtmltopdf](https://wkhtmltopdf.org/)
+- [ghostscript](https://www.ghostscript.com/)
+- [imagemagick](https://www.imagemagick.org/)
 
 ## Installation
 
