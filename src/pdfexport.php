@@ -125,6 +125,37 @@ class pdfexport
         ];
     }
 
+    public function format($size = null, $orientation = null)
+    {
+        if( $size === null && $orientation === null )
+        {
+            throw new \Exception('missing size or orientation');
+        }
+        if( $size !== null && !in_array(mb_strtoupper($size), ['A0','A1','A2','A3','A4','A5','A6','A7','A8','A9','B0','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10']) )
+        {
+            throw new \Exception('corrupt size');
+        }
+        if( $orientation !== null && !in_array(mb_strtolower($orientation), ['portrait','landscape']) )
+        {
+            throw new \Exception('corrupt orientation');
+        }
+        if( $this->data[count($this->data)-1]['type'] !== 'html' )
+        {
+            throw new \Exception('you only can a format to html files');
+        }
+        $format = [];
+        if( $size !== null )
+        {
+            $format['size'] = $size;
+        }
+        if( $orientation !== null )
+        {
+            $format['orientation'] = $orientation;
+        }
+        $this->data[count($this->data)-1]['format'] = $format;
+        return $this;
+    }
+
     public function grayscale($quality = null)
     {
         if( empty($this->data) )
@@ -286,6 +317,14 @@ class pdfexport
                     $loop = false;
                 }
                 elseif(
+                    ( array_key_exists('format', $current) && array_key_exists('format', $this->data[$pointer]) && $current['format'] != $this->data[$pointer]['format'] ) ||
+                    ( array_key_exists('format', $current) && !array_key_exists('format', $this->data[$pointer]) ) ||
+                    ( !array_key_exists('format', $current) && array_key_exists('format', $this->data[$pointer]) )
+                )
+                {
+                    $loop = false;
+                }
+                elseif(
                     ( array_key_exists('header', $current) && array_key_exists('header', $this->data[$pointer]) && $current['header']['height'] != $this->data[$pointer]['header']['height'] ) ||
                     ( array_key_exists('header', $current) && !array_key_exists('header', $this->data[$pointer]) ) ||
                     ( !array_key_exists('header', $current) && array_key_exists('header', $this->data[$pointer]) )
@@ -358,8 +397,22 @@ class pdfexport
             }
             $command .= '--margin-left "0mm" ';
             $command .= '--margin-right "0mm" ';
-            $command .= '--orientation "Portrait" ';
-            $command .= '--page-size "A4" ';
+            if( array_key_exists('format', $current) && array_key_exists('orientation', $current['format']) )
+            {
+                $command .= '--orientation "'.ucfirst(mb_strtolower($current['format']['orientation'])).'" ';
+            }
+            else
+            {
+                $command .= '--orientation "Portrait" ';
+            }
+            if( array_key_exists('format', $current) && array_key_exists('size', $current['format']) )
+            {
+                $command .= '--page-size "'.mb_strtoupper($current['format']['size']).'" ';
+            }
+            else
+            {
+                $command .= '--page-size "A4" ';
+            }
             $command .= '--quiet ';
             foreach($fetched as $fetched__value)
             {

@@ -88,6 +88,10 @@ $pdf->add('tests/file.pdf')
 // add a html file
 $pdf->add('tests/file.html');
 
+// add a html file in a3, landscape
+$pdf->add('tests/file.html')
+    ->format('a3','landscape');
+
 // add a html file and replace placeholders (%placeholder%)
 $pdf->add('tests/file.html')
     ->data([

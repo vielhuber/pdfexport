@@ -27,6 +27,8 @@ class Test extends \PHPUnit\Framework\TestCase
             ->grayscale(80);
         $pdf->add('tests/file.html');
         $pdf->add('tests/file.html')
+            ->format('a3','landscape');
+        $pdf->add('tests/file.html')
             ->data([
                 'placeholder1' => 'foo',
                 'placeholder2' => 'bar'
@@ -58,7 +60,7 @@ class Test extends \PHPUnit\Framework\TestCase
                 ]);
         }
         $pdf->save('tests/output.pdf');
-        $this->assertEquals( $pdf->count('tests/output.pdf'), 1511 );
+        $this->assertEquals( $pdf->count('tests/output.pdf'), 1512 );
     }
 
 }
