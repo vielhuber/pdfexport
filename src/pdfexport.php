@@ -315,7 +315,13 @@ class pdfexport
                     }                   
                     foreach($fetched_this as $fetched_this__key=>$fetched_this__value)
                     {
-                        $content = file_get_contents($fetched_this__value);
+                        // php code
+                        ob_start();
+                        include($fetched_this__value);
+                        $content = ob_get_clean();
+
+                        //$content = file_get_contents($fetched_this__value);
+                        // placeholders
                         if( array_key_exists('data', $this->data[$pointer]) )
                         {
                             foreach($this->data[$pointer]['data'] as $data__key=>$data__value)
@@ -447,6 +453,18 @@ class pdfexport
         if( stristr(PHP_OS, 'WIN') ) { return 'windows'; }
         if( stristr(PHP_OS, 'LINUX') ) { return 'linux'; }
         return 'unknown';
+    }
+
+    private function strposx($haystack, $needle)
+    {
+        $positions = [];
+        $last_pos = 0;
+        while(($last_pos = strpos($haystack, $needle, $last_pos)) !== false)
+        {
+            $positions[] = $last_pos;
+            $last_pos += strlen($needle);
+        }
+        return $positions;
     }
 
     private function filename($extension, $id = null)
