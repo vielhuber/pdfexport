@@ -216,7 +216,7 @@ class pdfexport
     public function base64()
     {
         $this->process();
-        return base64_encode($this->filename('pdf','final'));
+        return base64_encode(file_get_contents($this->filename('pdf','final')));
     }
 
     public function debug()
