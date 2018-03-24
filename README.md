@@ -20,7 +20,7 @@ pdfexport exports pdfs.
 
 ## Installation
 
-install once with composer:
+install once with [composer](https://getcomposer.org/):
 
 ```
 composer require vielhuber/pdfexport
