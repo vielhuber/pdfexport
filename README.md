@@ -42,6 +42,14 @@ $_ENV['GHOSTSCRIPT'] = 'C:\Program Files\GS\gs9.22\bin\gswin64c.exe';
 $_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
 ```
 
+in laravel just populate .env:
+```php
+PDFTK="C:\pdftk\bin\pdftk.exe"
+WKHTMLTOPDF="C:\wkhtmltopdf\bin\wkhtmltopdf.exe"
+GHOSTSCRIPT="C:\Program Files\GS\gs9.22\bin\gswin64c.exe"
+IMAGEMAGICK="C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe"
+```
+
 and can overcome *nix limits by increasing the ulimit for open files:
 ```
 ulimit -n 999999
