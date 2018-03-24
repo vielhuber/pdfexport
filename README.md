@@ -7,7 +7,7 @@ pdfexport exports pdfs.
 - easy syntax
 - can merge/grayscale/fill pdfs
 - individual headers per page possible
-- very fast (because of combining commands)
+- very fast because of combining commands
 - overcomes command line / process limits
 
 ## Requirements
