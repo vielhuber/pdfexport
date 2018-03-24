@@ -219,6 +219,12 @@ class pdfexport
         return 'data:application/pdf;base64,'.base64_encode(file_get_contents($this->filename('pdf','final')));
     }
 
+    public function content()
+    {
+        $this->process();
+        return file_get_contents($this->filename('pdf','final'));
+    }
+
     public function debug()
     {
         $this->process();
