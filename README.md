@@ -9,6 +9,7 @@ pdfexport exports pdfs.
 - individual headers per page possible
 - very fast because of combining commands
 - overcomes command line / process limits
+- allows php code inside html templates
 
 ## Requirements
 
