@@ -42,7 +42,7 @@ $_ENV['GHOSTSCRIPT'] = 'C:\Program Files\GS\gs9.22\bin\gswin64c.exe';
 $_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
 ```
 
-in laravel just populate .env:
+in [laravel](https://www.laravel.org) just populate .env:
 ```php
 PDFTK="C:\pdftk\bin\pdftk.exe"
 WKHTMLTOPDF="C:\wkhtmltopdf\bin\wkhtmltopdf.exe"
