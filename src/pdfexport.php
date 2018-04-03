@@ -551,6 +551,7 @@ class pdfexport
         }
         $pages = $this->exec('pdftk', $filename.' dump_data | '.(($this->os()==='windows')?('findstr'):('grep')).' NumberOfPages');
         $pages = preg_replace('/[^0-9,.]/', '', $pages);
+        $pages = intval($pages);
         return $pages;
     }
 
