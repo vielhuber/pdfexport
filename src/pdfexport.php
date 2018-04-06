@@ -463,7 +463,7 @@ class pdfexport
 
     private function exec($program, $command)
     {
-        if( !in_array($program, ['wkhtmltopdf','pdftk','ghostscript','imagemagick']) )
+        if( !in_array($program, ['wkhtmltopdf','pdftk','ghostscript','imagemagick','cpdf']) )
         {
             throw new \Exception('unknown program');
         }
@@ -478,7 +478,8 @@ class pdfexport
                 'wkhtmltopdf' => 'wkhtmltopdf',
                 'pdftk' => 'pdftk',
                 'ghostscript' => 'gs',
-                'imagemagick' => 'convert'
+                'imagemagick' => 'convert',
+                'cpdf' => 'cpdf'
             ][$program];
         }
         $run .= '"';
@@ -553,6 +554,23 @@ class pdfexport
         $pages = preg_replace('/[^0-9,.]/', '', $pages);
         $pages = intval($pages);
         return $pages;
+    }
+
+    public function split($filename, $chunksize = 1)
+    {
+        if(!file_exists($filename))
+        {
+            $filename = getcwd().'/'.$filename;
+        }
+        if( !file_exists($filename) )
+        {
+            throw new \Exception('file does not exist');
+        }
+        if( !is_numeric($chunksize) || $chunksize <= 0 )
+        {
+            throw new \Exception('corrupt chunksize');
+        }
+        $this->exec('cpdf', '-split '.$filename.' -o '.str_replace('.pdf','',$filename).'-'.str_repeat('%',(log($this->count($filename),10)+1)).'.pdf -chunk '.$chunksize);
     }
 
 }

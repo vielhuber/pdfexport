@@ -10,6 +10,8 @@ pdfexport exports pdfs.
 - very fast because of combining commands
 - overcomes command line / process limits
 - allows php code inside html templates
+- counts pages of pdfs
+- splits pdfs in chunks of size n
 
 ## Requirements
 
@@ -17,6 +19,7 @@ pdfexport exports pdfs.
 - [wkhtmltopdf](https://wkhtmltopdf.org/)
 - [ghostscript](https://www.ghostscript.com/)
 - [imagemagick](https://www.imagemagick.org/)
+- [cpdf](http://community.coherentpdf.com/)
 
 ## Installation
 
@@ -40,6 +43,7 @@ $_ENV['PDFTK'] = 'C:\pdftk\bin\pdftk.exe';
 $_ENV['WKHTMLTOPDF'] = 'C:\wkhtmltopdf\bin\wkhtmltopdf.exe';
 $_ENV['GHOSTSCRIPT'] = 'C:\Program Files\GS\gs9.22\bin\gswin64c.exe';
 $_ENV['IMAGEMAGICK'] = 'C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe';
+$_ENV['CPDF'] = 'C:\Program Files\cpdf\cpdf.exe';
 ```
 
 in [laravel](https://www.laravel.org) just populate .env:
@@ -48,6 +52,7 @@ PDFTK="C:\pdftk\bin\pdftk.exe"
 WKHTMLTOPDF="C:\wkhtmltopdf\bin\wkhtmltopdf.exe"
 GHOSTSCRIPT="C:\Program Files\GS\gs9.22\bin\gswin64c.exe"
 IMAGEMAGICK="C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe"
+CPDF="C:\Program Files\cpdf\cpdf.exe"
 ```
 
 and can overcome *nix limits by increasing the ulimit for open files:
@@ -144,8 +149,14 @@ foreach(range(0,2500) as $i)
 
 $pdf->download();
 $pdf->download('tests/output.pdf');
+
 $pdf->save('tests/output.pdf');
+
 $pdf->base64();
+
 $random_filename = $pdf->save();
-$pdf->count($random_filename); // 1
+
+$pdf->count($random_filename); // 42
+
+$pdf->split($random_filename, 7) // splits pdf in 6 chunks of size 7
 ```

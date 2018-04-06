@@ -61,6 +61,20 @@ class Test extends \PHPUnit\Framework\TestCase
         }
         $pdf->save('tests/output.pdf');
         $this->assertEquals( $pdf->count('tests/output.pdf'), 1512 );
+
+        $pdf->split('tests/output.pdf', 1);
+        $dir = new DirectoryIterator('tests/');
+        $split_count = 0;
+        foreach($dir as $dir__value)
+        {
+            if(!$dir__value->isDot() && strpos($dir__value->getFilename(), '-') !== false)
+            {
+                @unlink($dir__value->getPathname());
+                $split_count++;
+            }
+        }
+        $this->assertEquals( $split_count, 1512 );
+
     }
 
 }
