@@ -153,6 +153,7 @@ $pdf->download('tests/output.pdf');
 $pdf->save('tests/output.pdf');
 
 $pdf->base64();
+$pdf->content();
 
 $random_filename = $pdf->save();
 
