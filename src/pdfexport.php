@@ -573,9 +573,22 @@ class pdfexport
         $count = $this->count($filename);
         $this->exec('cpdf', '-split '.$filename.' -o '.str_replace('.pdf','',$filename).'-'.str_repeat('%',(log($count,10)+1)).'.pdf -chunk '.$chunksize);
         $filenames = [];
-        for($i = 0; $i < $count; $i++)
+        // sometimes cpdf starts at 0
+        if( file_exists( str_replace('.pdf','',$filename).'-'.str_pad(0, (log($count,10)+1), '0', STR_PAD_LEFT).'.pdf' ) )
         {
-            $filenames[] = str_replace('.pdf','',$filename).'-'.str_pad($i, (log($count,10)+1), '0', STR_PAD_LEFT).'.pdf';
+            $begin = 0;
+            $end = $count-1;
+        }
+        else
+        {
+            $begin = 1;
+            $end = $count;
+        }
+        while($begin <= $end)
+        {
+
+            $filenames[] = str_replace('.pdf','',$filename).'-'.str_pad($begin, (log($count,10)+1), '0', STR_PAD_LEFT).'.pdf';
+            $begin++;
         }
         return $filenames;
     }
