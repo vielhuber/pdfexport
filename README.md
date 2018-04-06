@@ -158,5 +158,5 @@ $random_filename = $pdf->save();
 
 $pdf->count($random_filename); // 42
 
-$pdf->split($random_filename, 7) // splits pdf in 6 chunks of size 7
+$splitted_filenames = $pdf->split($random_filename, 7) // splits pdf in 6 chunks of size 7
 ```

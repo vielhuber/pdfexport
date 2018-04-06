@@ -49,7 +49,9 @@ class Test extends \PHPUnit\Framework\TestCase
                 'placeholder3' => 'baz'
             ]);
         $pdf->add('<!DOCTYPE html><html><body><div>current time: <?php echo date(\'Y-m-d\'); ?></div></body></html>');
-        foreach(range(0,1500) as $i)
+
+        $limit = 1500;
+        foreach(range(0,$limit) as $i)
         {
             $pdf->add('tests/file.html')
                 ->header('tests/header.html', 30)
@@ -60,9 +62,12 @@ class Test extends \PHPUnit\Framework\TestCase
                 ]);
         }
         $pdf->save('tests/output.pdf');
-        $this->assertEquals( $pdf->count('tests/output.pdf'), 1512 );
+        $this->assertEquals( $pdf->count('tests/output.pdf'), ($limit+12) );
 
-        $pdf->split('tests/output.pdf', 1);
+        $splitted_filenames = $pdf->split('tests/output.pdf', 1);
+        $this->assertEquals( count($splitted_filenames), ($limit+12) );
+        $this->assertEquals( $splitted_filenames[0], 'tests/output-0000.pdf' );
+        $this->assertEquals( $splitted_filenames[($limit+12)-1], 'tests/output-'.($limit+12-1).'.pdf' );
         $dir = new DirectoryIterator('tests/');
         $split_count = 0;
         foreach($dir as $dir__value)
@@ -73,7 +78,7 @@ class Test extends \PHPUnit\Framework\TestCase
                 $split_count++;
             }
         }
-        $this->assertEquals( $split_count, 1512 );
+        $this->assertEquals( $split_count, ($limit+12) );
 
     }
 
