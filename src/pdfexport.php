@@ -470,7 +470,7 @@ class pdfexport
         $run = '"';
         if( isset($_ENV[mb_strtoupper($program)]) && $_ENV[mb_strtoupper($program)] != '' )
         {
-            $run .= $_ENV[mb_strtoupper($program)];
+            $run .= str_replace('"','',$_ENV[mb_strtoupper($program)]);
         }
         else
         {
