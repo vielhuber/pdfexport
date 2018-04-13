@@ -43,9 +43,9 @@ class Test extends \PHPUnit\Framework\TestCase
                     'placeholder1' => 'foo',
                     'placeholder2' => 'bar'
                 ]);
-            $pdf->add('<!DOCTYPE html><html><body><div>body with %placeholder1%</div></body></html>')
-                ->header('<!DOCTYPE html><html><body><div style="height:30mm;">header with %placeholder2%</div></body></html>')
-                ->footer('<!DOCTYPE html><html><body><div style="height:30mm;">footer with %placeholder3%</div></body></html>')
+            $pdf->add('<!DOCTYPE html><html><body><div>body with <?php echo $data->placeholder1; ?></div></body></html>')
+                ->header('<!DOCTYPE html><html><body><div style="height:30mm;">header with <?php echo $data->placeholder2; ?></div></body></html>')
+                ->footer('<!DOCTYPE html><html><body><div style="height:30mm;">footer with <?php echo $data->placeholder3; ?></div></body></html>')
                 ->data([
                     'placeholder1' => 'foo',
                     'placeholder2' => 'bar',

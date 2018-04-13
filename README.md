@@ -105,7 +105,7 @@ $pdf->add('tests/file.html');
 $pdf->add('tests/file.html')
     ->format('a3','landscape');
 
-// add a html file and replace placeholders (%placeholder%)
+// add a html file and replace placeholders (<?php echo $data->placeholder; ?>)
 $pdf->add('tests/file.html')
     ->data([
         'placeholder1' => 'foo',
@@ -122,9 +122,9 @@ $pdf->add('tests/file.html')
     ]);
 
 // strings are interpreted as html code
-$pdf->add('<!DOCTYPE html><html><body><div>body with %placeholder1%</div></body></html>')
-    ->header('<!DOCTYPE html><html><body><div style="height:30mm;">header with %placeholder2%</div></body></html>')
-    ->footer('<!DOCTYPE html><html><body><div style="height:30mm;">footer with %placeholder3%</div></body></html>')
+$pdf->add('<!DOCTYPE html><html><body><div>body with <?php echo $data->placeholder1; ?></div></body></html>')
+    ->header('<!DOCTYPE html><html><body><div style="height:30mm;">header with <?php echo $data->placeholder2; ?></div></body></html>')
+    ->footer('<!DOCTYPE html><html><body><div style="height:30mm;">footer with <?php echo $data->placeholder3; ?></div></body></html>')
     ->data([
         'placeholder1' => 'foo',
         'placeholder2' => 'bar',

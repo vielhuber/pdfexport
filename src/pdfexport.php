@@ -360,20 +360,22 @@ class pdfexport
                     }                   
                     foreach($fetched_this as $fetched_this__key=>$fetched_this__value)
                     {
+                        // placeholders
+                        $data = [];
+                        if( array_key_exists('data', $this->data[$pointer]) )
+                        {
+                            foreach($this->data[$pointer]['data'] as $data__key=>$data__value)
+                            {
+                                $data[$data__key] = $data__value;
+                            }
+                        }
+                        $data = (object)$data;
+
                         // php code
                         ob_start();
                         include($fetched_this__value);
                         $content = ob_get_clean();
 
-                        //$content = file_get_contents($fetched_this__value);
-                        // placeholders
-                        if( array_key_exists('data', $this->data[$pointer]) )
-                        {
-                            foreach($this->data[$pointer]['data'] as $data__key=>$data__value)
-                            {
-                                $content = str_replace('%'.$data__key.'%', $data__value, $content);
-                            }
-                        }
                         file_put_contents( $this->filename('html',$fetched_this__key.'_'.$pointer), $content );
                         $fetched_this[$fetched_this__key] = $this->filename('html',$fetched_this__key.'_'.$pointer);
                     }
