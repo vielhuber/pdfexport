@@ -156,6 +156,20 @@ class pdfexport
         return $this;
     }
 
+    public function limit($pages)
+    {
+        if( empty($this->data) )
+        {
+            throw new \Exception('you first need to add pages');
+        }
+        if( $pages === null || !is_numeric($pages) || $pages < 0 )
+        {
+            throw new \Exception('corrupt pages');
+        }
+        $this->data[count($this->data)-1]['limit'] = $pages;
+        return $this;
+    }
+
     public function grayscale($quality = null)
     {
         if( empty($this->data) )
@@ -455,6 +469,15 @@ class pdfexport
                 $density = 72+((300-72)*($quality/100));
                 $this->exec('imagemagick', '-density '.$density.' '.$source.' -colorspace GRAY '.$target); 
             }
+        }
+
+        // limit 
+        if( array_key_exists('limit',$current) && $current['limit'] != '' )
+        {
+            $target = $files[count($files)-1];
+            $source = $this->filename('pdf');
+            copy( $target, $source );
+            $this->exec('cpdf', $source.' 1-'.$current['limit'].' -o '.$target);
         }
 
         $pointer++;

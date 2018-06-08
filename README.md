@@ -11,6 +11,7 @@ pdfexport exports pdfs.
 - overcomes command line / process limits
 - allows php code inside html templates
 - counts pages of pdfs
+- can set a limit on page counts
 - splits pdfs in chunks of size n
 
 ## Requirements
@@ -158,6 +159,11 @@ $pdf->content();
 $random_filename = $pdf->save();
 
 $pdf->count($random_filename); // 42
+
+$pdf->add('<!DOCTYPE html><html><body><div style="height:8000px;"></div></body></html>')
+    ->limit(2)
+    ->save('tests/output.pdf');
+$pdf->count('tests/output.pdf'); // 2;
 
 $splitted_filenames = $pdf->split($random_filename, 7) // splits pdf in 6 chunks of size 7
 ```

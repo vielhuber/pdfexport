@@ -83,6 +83,12 @@ class Test extends \PHPUnit\Framework\TestCase
             }
             $this->assertEquals( $split_count, ($limit+12) );
 
+            $pdf = new pdfexport;
+            $pdf->add('<!DOCTYPE html><html><body><div style="height:8000px;"></div></body></html>')
+                ->limit(2)
+                ->save('tests/output.pdf');
+            $this->assertEquals( $pdf->count('tests/output.pdf'), 2 );
+
             fwrite(STDERR, print_r('correctly done loop '.$test_iteration.' with a '.($limit+12).'-paged pdf'.PHP_EOL, true));
         }
 
