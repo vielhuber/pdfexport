@@ -467,7 +467,7 @@ class pdfexport
             {
                 $quality = $current['grayscale']['quality'];
                 $density = 72+((300-72)*($quality/100));
-                $this->exec('imagemagick', '-density '.$density.' '.$source.' -colorspace GRAY '.$target); 
+                $this->exec('imagemagick', '-density '.$density.' '.$source.' -colorspace sRGB -colorspace GRAY '.$target); 
             }
         }
 
