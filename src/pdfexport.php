@@ -235,7 +235,7 @@ class pdfexport
         header('Content-type: application/pdf');
         header('Content-Disposition: inline; filename="'.$filename.'.pdf"');
         header('Content-Transfer-Encoding: binary');
-        header('Content-Length: '.filesize($this->filename('pdf','final')));
+        header('Content-Length: '.strlen(file_get_contents($this->filename('pdf','final')))); // filesize does not work on encrypted files(!)
         header('Accept-Ranges: bytes');
         readfile($this->filename('pdf','final'));
         die();
@@ -303,7 +303,7 @@ class pdfexport
             $target = $this->filename('pdf','final');
             $source = $this->filename('pdf');
             copy( $target, $source );
-            $this->exec('ghostscript', '-dPDFA -dBATCH -dNOPAUSE -sProcessColorModel=DeviceCMYK -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile='.$target.' '.$source);
+            $this->exec('ghostscript', '-dPDFA -dBATCH -dNOPAUSE -sProcessColorModel=DeviceCMYK -sDEVICE=pdfwrite -dPDFACompatibilityPolicy=1 -sOutputFile='.$target.' '.$source);
         }
 
         // disabled permissions
