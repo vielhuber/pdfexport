@@ -312,15 +312,15 @@ class pdfexport
             $target = $this->filename('pdf','final');
             $source = $this->filename('pdf');
             copy( $target, $source );
-            if( in_array('print',$this->settings) && in_array('edit',$this->settings) )
+            if( in_array('print',$this->settings['disabled_permissions']) && in_array('edit',$this->settings['disabled_permissions']) )
             {
                 $allow = '';
             }
-            else if( in_array('print',$this->settings) )
+            else if( in_array('print',$this->settings['disabled_permissions']) )
             {
                 $allow = ' allow ModifyContents allow CopyContents allow ModifyAnnotations';
             }
-            else if( in_array('edit',$this->settings) )
+            else if( in_array('edit',$this->settings['disabled_permissions']) )
             {
                 $allow = ' allow Printing';
             }
