@@ -89,6 +89,25 @@ class Test extends \PHPUnit\Framework\TestCase
                 ->save('tests/output.pdf');
             $this->assertEquals( $pdf->count('tests/output.pdf'), 2 );
 
+            $pdf = new pdfexport;
+            $pdf->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
+                ->setStandard('PDF/A')
+                ->save('tests/output.pdf');
+            $this->assertEquals( $pdf->count('tests/output.pdf'), 1 );
+
+            $pdf = new pdfexport;
+            $pdf->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
+                ->disablePermission(['print','edit'])
+                ->save('tests/output.pdf');
+            //$this->assertEquals( $pdf->count('tests/output.pdf'), 1 );
+
+            $pdf = new pdfexport;
+            $pdf->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
+                ->setStandard('PDF/A')
+                ->disablePermission(['print','edit'])
+                ->save('tests/output.pdf');
+            //$this->assertEquals( $pdf->count('tests/output.pdf'), 1 );
+
             fwrite(STDERR, print_r('correctly done loop '.$test_iteration.' with a '.($limit+12).'-paged pdf'.PHP_EOL, true));
         }
 

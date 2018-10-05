@@ -13,6 +13,8 @@ pdfexport exports pdfs.
 - counts pages of pdfs
 - can set a limit on page counts
 - splits pdfs in chunks of size n
+- can create pdf/a files
+- can disallow printing or editing
 
 ## Requirements
 
@@ -160,10 +162,17 @@ $random_filename = $pdf->save();
 
 $pdf->count($random_filename); // 42
 
+$splitted_filenames = $pdf->split($random_filename, 7) // splits pdf in 6 chunks of size 7
+
 $pdf->add('<!DOCTYPE html><html><body><div style="height:8000px;"></div></body></html>')
     ->limit(2)
     ->save('tests/output.pdf');
 $pdf->count('tests/output.pdf'); // 2;
 
-$splitted_filenames = $pdf->split($random_filename, 7) // splits pdf in 6 chunks of size 7
+$pdf->add('<!DOCTYPE html><html><body><div></div></body></html>')
+    ->setStandard('PDF/A')
+    ->disablePermission(['print','edit'])
+    ->save('tests/output.pdf');
+$pdf->count('tests/output.pdf'); // 0 (no permission!)
+
 ```

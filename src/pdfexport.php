@@ -5,6 +5,7 @@ class pdfexport
 {
 
     private $data = [];
+    private $settings = [];
     private $session = null;
 
     public function __construct()
@@ -166,7 +167,35 @@ class pdfexport
         {
             throw new \Exception('corrupt pages');
         }
-        $this->data[count($this->data)-1]['limit'] = $pages;
+        $this->settings['limit'] = $pages;
+        return $this;
+    }
+
+    public function setStandard($standard)
+    {
+        if( empty($this->data) )
+        {
+            throw new \Exception('you first need to add pages');
+        }
+        if( !in_array($standard, ['PDF/A']) )
+        {
+            throw new \Exception('unsupported standard');
+        }
+        $this->settings['standard'] = $standard;
+        return $this;
+    }
+
+    public function disablePermission($permissions)
+    {
+        if( empty($this->data) )
+        {
+            throw new \Exception('you first need to add pages');
+        }
+        if( !is_array($permissions) || array_intersect($permissions, ['print','edit']) != $permissions )
+        {
+            throw new \Exception('unsupported permissions modes');
+        }
+        $this->settings['disabled_permissions'] = $permissions;
         return $this;
     }
 
@@ -258,6 +287,46 @@ class pdfexport
         $pointer = 0;
         while( $this->generateAndRunNextMergedCommand($pointer, $files) ) {}
         $this->exec('pdftk', implode(' ',$files).' cat output '.$this->filename('pdf','final'));
+
+        // limit 
+        if( array_key_exists('limit', $this->settings) )
+        {
+            $target = $this->filename('pdf','final');
+            $source = $this->filename('pdf');
+            copy( $target, $source );
+            $this->exec('cpdf', $source.' 1-'.$this->settings['limit'].' -o '.$target);
+        }
+
+        // standard
+        if( array_key_exists('standard', $this->settings) )
+        {
+            $target = $this->filename('pdf','final');
+            $source = $this->filename('pdf');
+            copy( $target, $source );
+            $this->exec('ghostscript', '-dPDFA -dBATCH -dNOPAUSE -sProcessColorModel=DeviceCMYK -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile='.$target.' '.$source);
+        }
+
+        // disabled permissions
+        if( array_key_exists('disabled_permissions', $this->settings) )
+        {
+            $target = $this->filename('pdf','final');
+            $source = $this->filename('pdf');
+            copy( $target, $source );
+            if( in_array('print',$this->settings) && in_array('edit',$this->settings) )
+            {
+                $allow = '';
+            }
+            else if( in_array('print',$this->settings) )
+            {
+                $allow = ' allow ModifyContents allow CopyContents allow ModifyAnnotations';
+            }
+            else if( in_array('edit',$this->settings) )
+            {
+                $allow = ' allow Printing';
+            }
+            $this->exec('pdftk', $source.' output '.$target.' owner_pw "'.md5(uniqid(mt_rand(), true)).'"'.$allow);
+        }
+
     }
 
     private function generateAndRunNextMergedCommand(&$pointer, &$files)
@@ -471,15 +540,6 @@ class pdfexport
             }
         }
 
-        // limit 
-        if( array_key_exists('limit',$current) && $current['limit'] != '' )
-        {
-            $target = $files[count($files)-1];
-            $source = $this->filename('pdf');
-            copy( $target, $source );
-            $this->exec('cpdf', $source.' 1-'.$current['limit'].' -o '.$target);
-        }
-
         $pointer++;
 
         return true;
@@ -519,7 +579,7 @@ class pdfexport
         }
         $run .= $command;
         $this->log($run);
-        $ret = exec($run);
+        $ret = shell_exec($run);
         return $ret;
     }
 
