@@ -233,7 +233,7 @@ class pdfexport
             $filename = date('Y-m-d_H-i-s',strtotime('now')).'.pdf';
         }
         header('Content-type: application/pdf');
-        header('Content-Disposition: inline; filename="'.$filename.'.pdf"');
+        header('Content-Disposition: inline; filename="'.$filename.'"');
         header('Content-Transfer-Encoding: binary');
         header('Content-Length: '.strlen(file_get_contents($this->filename('pdf','final')))); // filesize does not work on encrypted files(!)
         header('Accept-Ranges: bytes');
