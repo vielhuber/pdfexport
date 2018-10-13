@@ -14,7 +14,7 @@ pdfexport exports pdfs.
 - can set a limit on page counts
 - splits pdfs in chunks of size n
 - can create pdf/a files
-- can disallow printing or editing
+- can disallow printing and editing
 
 ## Requirements
 
