@@ -135,7 +135,7 @@ $pdf->add('<!DOCTYPE html><html><body><div>body with <?php echo $data->placehold
     ]);
 
 // you can also execute php code inside templates
-$pdf->add('<!DOCTYPE html><html><body><div>current time: <?php echo date(\'Y-m-d\'); ?></div></body></html>');
+$pdf->add('<!DOCTYPE html><html><body><div>cur time: <?php echo date(\'Y-m-d\'); ?></div></body></html>');
 $pdf->add('<!DOCTYPE html><html><body><div>another part: <?php include(\'tests/part.html\'); ?></div></body></html>');
 
 // the cool part is that this is also very performant (because this results only in only a few subcommands)
