@@ -22,7 +22,7 @@ class Test extends \PHPUnit\Framework\TestCase
                     'placeholder2' => 'This is a multiline\ntest1\ntest2\ntest3\ntest4\ntest5\ntest6\ntest7\ntest8\ntest9\ntest10'
                 ])
                 ->data([
-                    'placeholder3' => 'This is Sonderzeichen ß täst!'
+                    'placeholder3' => 'This is Sonderzeichen ß täst! with enclosing bracket ('
                 ]);
             $pdf->add('tests/file.pdf')
                 ->grayscale();

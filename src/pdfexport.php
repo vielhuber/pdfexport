@@ -363,7 +363,7 @@ class pdfexport
             $fdf[] = '1 0 obj<</FDF<< /Fields[';
             foreach($current['data'] as $data__key=>$data__value)
             {
-                $fdf[] = '<</T('.$data__key.')/V('.$data__value.')>>';
+                $fdf[] = '<</T('.$data__key.')/V('.str_replace(')','\)',str_replace('(','\(',$data__value)).')>>';
             }
             $fdf[] = '] >> >>';
             $fdf[] = 'endobj';
