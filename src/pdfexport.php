@@ -28,8 +28,7 @@ class pdfexport
                 $content = getcwd() . '/' . $content;
             }
             if (!file_exists($content)) {
-                die($content);
-                throw new \Exception('file does not exist');
+                throw new \Exception('file ' . $content . ' does not exist');
             }
             $this->data[] = [
                 'type' => substr($content, strrpos($content, '.') + 1),
