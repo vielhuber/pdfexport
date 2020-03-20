@@ -4,7 +4,6 @@ namespace vielhuber\pdfexport;
 
 class pdfexport
 {
-
     private $data = [];
     private $settings = [];
     private $session = null;
@@ -21,8 +20,8 @@ class pdfexport
             throw new \Exception('content missing');
         }
         if (
-            strrpos($content, '.html') === (mb_strlen($content) - mb_strlen('.html')) ||
-            strrpos($content, '.pdf') === (mb_strlen($content) - mb_strlen('.pdf'))
+            strrpos($content, '.html') === mb_strlen($content) - mb_strlen('.html') ||
+            strrpos($content, '.pdf') === mb_strlen($content) - mb_strlen('.pdf')
         ) {
             if (!file_exists($content)) {
                 $content = getcwd() . '/' . $content;
@@ -54,7 +53,10 @@ class pdfexport
         if (!array_key_exists('data', $this->data[count($this->data) - 1])) {
             $this->data[count($this->data) - 1]['data'] = $data;
         } else {
-            $this->data[count($this->data) - 1]['data'] = array_merge($this->data[count($this->data) - 1]['data'], $data);
+            $this->data[count($this->data) - 1]['data'] = array_merge(
+                $this->data[count($this->data) - 1]['data'],
+                $data
+            );
         }
         return $this;
     }
@@ -82,7 +84,7 @@ class pdfexport
         if ($content === null || $content == '') {
             throw new \Exception('content missing');
         }
-        if (strrpos($content, '.html') === (mb_strlen($content) - mb_strlen('.html'))) {
+        if (strrpos($content, '.html') === mb_strlen($content) - mb_strlen('.html')) {
             if (!file_exists($content)) {
                 $content = getcwd() . '/' . $content;
             }
@@ -111,7 +113,32 @@ class pdfexport
         if ($size === null && $orientation === null) {
             throw new \Exception('missing size or orientation');
         }
-        if ($size !== null && !in_array(mb_strtoupper($size), ['A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'B0', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10'])) {
+        if (
+            $size !== null &&
+            !in_array(mb_strtoupper($size), [
+                'A0',
+                'A1',
+                'A2',
+                'A3',
+                'A4',
+                'A5',
+                'A6',
+                'A7',
+                'A8',
+                'A9',
+                'B0',
+                'B1',
+                'B2',
+                'B3',
+                'B4',
+                'B5',
+                'B6',
+                'B7',
+                'B8',
+                'B9',
+                'B10'
+            ])
+        ) {
             throw new \Exception('corrupt size');
         }
         if ($orientation !== null && !in_array(mb_strtolower($orientation), ['portrait', 'landscape'])) {
@@ -152,6 +179,21 @@ class pdfexport
             throw new \Exception('unsupported standard');
         }
         $this->settings['standard'] = $standard;
+        return $this;
+    }
+
+    public function stamp($filename)
+    {
+        if (empty($this->data)) {
+            throw new \Exception('you first need to add pages');
+        }
+        if (!file_exists($filename)) {
+            $filename = getcwd() . '/' . $filename;
+        }
+        if (!file_exists($filename)) {
+            throw new \Exception('file does not exist');
+        }
+        $this->settings['stamp'] = $filename;
         return $this;
     }
 
@@ -247,14 +289,15 @@ class pdfexport
         $commands = [];
         $files = [];
         $pointer = 0;
-        while ($this->generateAndRunNextMergedCommand($pointer, $files)) { }
+        while ($this->generateAndRunNextMergedCommand($pointer, $files)) {
+        }
         if (empty($files)) {
             throw new \Exception('content missing');
         }
 
         $this->exec('pdftk', implode(' ', $files) . ' cat output ' . $this->filename('pdf', 'final'));
 
-        // limit 
+        // limit
         if (array_key_exists('limit', $this->settings)) {
             $target = $this->filename('pdf', 'final');
             $source = $this->filename('pdf');
@@ -262,12 +305,26 @@ class pdfexport
             $this->exec('cpdf', $source . ' 1-' . $this->settings['limit'] . ' -o ' . $target);
         }
 
+        // stamp
+        if (array_key_exists('stamp', $this->settings)) {
+            $target = $this->filename('pdf', 'final');
+            $source = $this->filename('pdf');
+            copy($target, $source);
+            $this->exec('pdftk', $source . ' stamp ' . $this->settings['stamp'] . ' output ' . $target);
+        }
+
         // standard
         if (array_key_exists('standard', $this->settings)) {
             $target = $this->filename('pdf', 'final');
             $source = $this->filename('pdf');
             copy($target, $source);
-            $this->exec('ghostscript', '-dPDFA -dBATCH -dNOPAUSE -sProcessColorModel=DeviceCMYK -sDEVICE=pdfwrite -dPDFACompatibilityPolicy=1 -sOutputFile=' . $target . ' ' . $source);
+            $this->exec(
+                'ghostscript',
+                '-dPDFA -dBATCH -dNOPAUSE -sProcessColorModel=DeviceCMYK -sDEVICE=pdfwrite -dPDFACompatibilityPolicy=1 -sOutputFile=' .
+                    $target .
+                    ' ' .
+                    $source
+            );
         }
 
         // disabled permissions
@@ -275,20 +332,25 @@ class pdfexport
             $target = $this->filename('pdf', 'final');
             $source = $this->filename('pdf');
             copy($target, $source);
-            if (in_array('print', $this->settings['disabled_permissions']) && in_array('edit', $this->settings['disabled_permissions'])) {
+            if (
+                in_array('print', $this->settings['disabled_permissions']) &&
+                in_array('edit', $this->settings['disabled_permissions'])
+            ) {
                 $allow = '';
-            } else if (in_array('print', $this->settings['disabled_permissions'])) {
+            } elseif (in_array('print', $this->settings['disabled_permissions'])) {
                 $allow = ' allow ModifyContents allow CopyContents allow ModifyAnnotations';
-            } else if (in_array('edit', $this->settings['disabled_permissions'])) {
+            } elseif (in_array('edit', $this->settings['disabled_permissions'])) {
                 $allow = ' allow Printing';
             }
-            $this->exec('pdftk', $source . ' output ' . $target . ' owner_pw "' . md5(uniqid(mt_rand(), true)) . '"' . $allow);
+            $this->exec(
+                'pdftk',
+                $source . ' output ' . $target . ' owner_pw "' . md5(uniqid(mt_rand(), true)) . '"' . $allow
+            );
         }
     }
 
     private function generateAndRunNextMergedCommand(&$pointer, &$files)
     {
-
         // end of data
         if (!isset($this->data[$pointer])) {
             return false;
@@ -299,7 +361,9 @@ class pdfexport
         // a pdf without data
         if (
             $current['type'] === 'pdf' &&
-            array_key_exists('filename', $current) && $current['filename'] != '' && (!array_key_exists('data', $current) || empty($current['data']))
+            array_key_exists('filename', $current) &&
+            $current['filename'] != '' &&
+            (!array_key_exists('data', $current) || empty($current['data']))
         ) {
             copy($current['filename'], $this->filename('pdf', $pointer));
             $files[] = $this->filename('pdf', $pointer);
@@ -308,14 +372,21 @@ class pdfexport
         // a pdf with data
         if (
             $current['type'] === 'pdf' &&
-            array_key_exists('filename', $current) && $current['filename'] != '' &&
-            array_key_exists('data', $current) && !empty($current['data'])
+            array_key_exists('filename', $current) &&
+            $current['filename'] != '' &&
+            array_key_exists('data', $current) &&
+            !empty($current['data'])
         ) {
             $fdf = [];
             $fdf[] = '%FDF-1.2';
             $fdf[] = '1 0 obj<</FDF<< /Fields[';
             foreach ($current['data'] as $data__key => $data__value) {
-                $fdf[] = '<</T(' . $data__key . ')/V(' . str_replace(')', '\)', str_replace('(', '\(', $data__value)) . ')>>';
+                $fdf[] =
+                    '<</T(' .
+                    $data__key .
+                    ')/V(' .
+                    str_replace(')', '\)', str_replace('(', '\(', $data__value)) .
+                    ')>>';
             }
             $fdf[] = '] >> >>';
             $fdf[] = 'endobj';
@@ -324,7 +395,15 @@ class pdfexport
             $fdf[] = '%%EOF';
             $fdf = implode("\n", $fdf);
             file_put_contents($this->filename('fdf', $pointer), utf8_decode($fdf));
-            $this->exec('pdftk', $current['filename'] . ' fill_form ' . $this->filename('fdf', $pointer) . ' output ' . $this->filename('pdf', $pointer) . ' flatten');
+            $this->exec(
+                'pdftk',
+                $current['filename'] .
+                    ' fill_form ' .
+                    $this->filename('fdf', $pointer) .
+                    ' output ' .
+                    $this->filename('pdf', $pointer) .
+                    ' flatten'
+            );
             $files[] = $this->filename('pdf', $pointer);
         }
 
@@ -343,19 +422,36 @@ class pdfexport
                 elseif (count($fetched) > 500) {
                     $loop = false;
                 } elseif (
-                    (array_key_exists('grayscale', $current) && array_key_exists('grayscale', $this->data[$pointer]) && $current['grayscale'] != $this->data[$pointer]['grayscale']) || (array_key_exists('grayscale', $current) && !array_key_exists('grayscale', $this->data[$pointer])) || (!array_key_exists('grayscale', $current) && array_key_exists('grayscale', $this->data[$pointer]))
+                    (array_key_exists('grayscale', $current) &&
+                        array_key_exists('grayscale', $this->data[$pointer]) &&
+                        $current['grayscale'] != $this->data[$pointer]['grayscale']) ||
+                    (array_key_exists('grayscale', $current) &&
+                        !array_key_exists('grayscale', $this->data[$pointer])) ||
+                    (!array_key_exists('grayscale', $current) && array_key_exists('grayscale', $this->data[$pointer]))
                 ) {
                     $loop = false;
                 } elseif (
-                    (array_key_exists('format', $current) && array_key_exists('format', $this->data[$pointer]) && $current['format'] != $this->data[$pointer]['format']) || (array_key_exists('format', $current) && !array_key_exists('format', $this->data[$pointer])) || (!array_key_exists('format', $current) && array_key_exists('format', $this->data[$pointer]))
+                    (array_key_exists('format', $current) &&
+                        array_key_exists('format', $this->data[$pointer]) &&
+                        $current['format'] != $this->data[$pointer]['format']) ||
+                    (array_key_exists('format', $current) && !array_key_exists('format', $this->data[$pointer])) ||
+                    (!array_key_exists('format', $current) && array_key_exists('format', $this->data[$pointer]))
                 ) {
                     $loop = false;
                 } elseif (
-                    (array_key_exists('header', $current) && array_key_exists('header', $this->data[$pointer]) && $current['header']['height'] != $this->data[$pointer]['header']['height']) || (array_key_exists('header', $current) && !array_key_exists('header', $this->data[$pointer])) || (!array_key_exists('header', $current) && array_key_exists('header', $this->data[$pointer]))
+                    (array_key_exists('header', $current) &&
+                        array_key_exists('header', $this->data[$pointer]) &&
+                        $current['header']['height'] != $this->data[$pointer]['header']['height']) ||
+                    (array_key_exists('header', $current) && !array_key_exists('header', $this->data[$pointer])) ||
+                    (!array_key_exists('header', $current) && array_key_exists('header', $this->data[$pointer]))
                 ) {
                     $loop = false;
                 } elseif (
-                    (array_key_exists('footer', $current) && array_key_exists('footer', $this->data[$pointer]) && $current['footer']['height'] != $this->data[$pointer]['footer']['height']) || (array_key_exists('footer', $current) && !array_key_exists('footer', $this->data[$pointer])) || (!array_key_exists('footer', $current) && array_key_exists('footer', $this->data[$pointer]))
+                    (array_key_exists('footer', $current) &&
+                        array_key_exists('footer', $this->data[$pointer]) &&
+                        $current['footer']['height'] != $this->data[$pointer]['footer']['height']) ||
+                    (array_key_exists('footer', $current) && !array_key_exists('footer', $this->data[$pointer])) ||
+                    (!array_key_exists('footer', $current) && array_key_exists('footer', $this->data[$pointer]))
                 ) {
                     $loop = false;
                 } else {
@@ -379,11 +475,14 @@ class pdfexport
 
                         // php code
                         ob_start();
-                        include($fetched_this__value);
+                        include $fetched_this__value;
                         $content = ob_get_clean();
 
                         file_put_contents($this->filename('html', $fetched_this__key . '_' . $pointer), $content);
-                        $fetched_this[$fetched_this__key] = $this->filename('html', $fetched_this__key . '_' . $pointer);
+                        $fetched_this[$fetched_this__key] = $this->filename(
+                            'html',
+                            $fetched_this__key . '_' . $pointer
+                        );
                     }
                     $fetched[] = $fetched_this;
                     $pointer++;
@@ -436,11 +535,20 @@ class pdfexport
             $source = $this->filename('pdf');
             copy($target, $source);
             if ($current['grayscale']['type'] === 'vector') {
-                $this->exec('ghostscript', '-sOutputFile=' . $target . ' -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dAutoRotatePages=/None -dNOPAUSE -dBATCH ' . $source);
+                $this->exec(
+                    'ghostscript',
+                    '-sOutputFile=' .
+                        $target .
+                        ' -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dAutoRotatePages=/None -dNOPAUSE -dBATCH ' .
+                        $source
+                );
             } elseif ($current['grayscale']['type'] === 'pixel') {
                 $quality = $current['grayscale']['quality'];
-                $density = 72 + ((300 - 72) * ($quality / 100));
-                $this->exec('imagemagick', '-density ' . $density . ' ' . $source . ' -colorspace sRGB -colorspace GRAY ' . $target);
+                $density = 72 + (300 - 72) * ($quality / 100);
+                $this->exec(
+                    'imagemagick',
+                    '-density ' . $density . ' ' . $source . ' -colorspace sRGB -colorspace GRAY ' . $target
+                );
             }
         }
 
@@ -486,7 +594,10 @@ class pdfexport
         if (!file_exists($this->filename('txt', 'log'))) {
             file_put_contents($this->filename('txt', 'log'), '');
         }
-        file_put_contents($this->filename('txt', 'log'), $str . "\n" . file_get_contents($this->filename('txt', 'log')));
+        file_put_contents(
+            $this->filename('txt', 'log'),
+            $str . "\n" . file_get_contents($this->filename('txt', 'log'))
+        );
     }
 
     private function os()
@@ -533,7 +644,10 @@ class pdfexport
         if (!file_exists($filename)) {
             throw new \Exception('file does not exist');
         }
-        $pages = $this->exec('pdftk', $filename . ' dump_data | ' . (($this->os() === 'windows') ? ('findstr') : ('grep')) . ' NumberOfPages');
+        $pages = $this->exec(
+            'pdftk',
+            $filename . ' dump_data | ' . ($this->os() === 'windows' ? 'findstr' : 'grep') . ' NumberOfPages'
+        );
         $pages = preg_replace('/[^0-9,.]/', '', $pages);
         $pages = intval($pages);
         return $pages;
@@ -551,10 +665,24 @@ class pdfexport
             throw new \Exception('corrupt chunksize');
         }
         $count = $this->count($filename);
-        $this->exec('cpdf', '-split ' . $filename . ' -o ' . str_replace('.pdf', '', $filename) . '-' . str_repeat('%', (log($count, 10) + 1)) . '.pdf -chunk ' . $chunksize);
+        $this->exec(
+            'cpdf',
+            '-split ' .
+                $filename .
+                ' -o ' .
+                str_replace('.pdf', '', $filename) .
+                '-' .
+                str_repeat('%', log($count, 10) + 1) .
+                '.pdf -chunk ' .
+                $chunksize
+        );
         $filenames = [];
         // sometimes cpdf starts at 0
-        if (file_exists(str_replace('.pdf', '', $filename) . '-' . str_pad(0, (log($count, 10) + 1), '0', STR_PAD_LEFT) . '.pdf')) {
+        if (
+            file_exists(
+                str_replace('.pdf', '', $filename) . '-' . str_pad(0, log($count, 10) + 1, '0', STR_PAD_LEFT) . '.pdf'
+            )
+        ) {
             $begin = 0;
             $end = $count - 1;
         } else {
@@ -562,8 +690,11 @@ class pdfexport
             $end = $count;
         }
         while ($begin <= $end) {
-
-            $filenames[] = str_replace('.pdf', '', $filename) . '-' . str_pad($begin, (log($count, 10) + 1), '0', STR_PAD_LEFT) . '.pdf';
+            $filenames[] =
+                str_replace('.pdf', '', $filename) .
+                '-' .
+                str_pad($begin, log($count, 10) + 1, '0', STR_PAD_LEFT) .
+                '.pdf';
             $begin++;
         }
         return $filenames;

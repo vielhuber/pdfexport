@@ -4,25 +4,26 @@ pdfexport exports pdfs.
 
 ## Features
 
-- easy syntax
-- can merge/grayscale/fill pdfs
-- individual headers per page possible
-- very fast because of combining commands
-- overcomes command line / process limits
-- allows php code inside html templates
-- counts pages of pdfs
-- can set a limit on page counts
-- splits pdfs in chunks of size n
-- can create pdf/a files
-- can disallow printing and editing
+-   easy syntax
+-   can merge/grayscale/fill pdfs
+-   individual headers per page possible
+-   very fast because of combining commands
+-   overcomes command line / process limits
+-   allows php code inside html templates
+-   counts pages of pdfs
+-   can set a limit on page counts
+-   splits pdfs in chunks of size n
+-   can create pdf/a files
+-   can disallow printing and editing
+-   stamp/watermark pdfs
 
 ## Requirements
 
-- [pdftk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/)
-- [wkhtmltopdf](https://wkhtmltopdf.org/)
-- [ghostscript](https://www.ghostscript.com/)
-- [imagemagick](https://www.imagemagick.org/)
-- [cpdf](http://community.coherentpdf.com/)
+-   [pdftk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/)
+-   [wkhtmltopdf](https://wkhtmltopdf.org/)
+-   [ghostscript](https://www.ghostscript.com/)
+-   [imagemagick](https://www.imagemagick.org/)
+-   [cpdf](http://community.coherentpdf.com/)
 
 ## Installation
 
@@ -35,7 +36,7 @@ composer require vielhuber/pdfexport
 then add this to your files:
 
 ```php
-require __DIR__.'/vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 use vielhuber\pdfexport\pdfexport;
 ```
 
@@ -50,6 +51,7 @@ $_ENV['CPDF'] = 'C:\Program Files\cpdf\cpdf.exe';
 ```
 
 in [laravel](https://www.laravel.org) just populate .env:
+
 ```php
 PDFTK="C:\pdftk\bin\pdftk.exe"
 WKHTMLTOPDF="C:\wkhtmltopdf\bin\wkhtmltopdf.exe"
@@ -58,15 +60,17 @@ IMAGEMAGICK="C:\Program Files\ImageMagick-6.9.9-Q16\convert.exe"
 CPDF="C:\Program Files\cpdf\cpdf.exe"
 ```
 
-and can overcome *nix limits by increasing the ulimit for open files:
+and can overcome \*nix limits by increasing the ulimit for open files:
+
 ```
 ulimit -n 999999
 ```
+
 you can do this permanently inside /etc/security/limits.conf:
+
 ```
 * - nofile 999999
 ```
-
 
 ## Usage
 
@@ -149,6 +153,9 @@ foreach(range(0,2500) as $i)
             'placeholder2' => 'bar'
         ]);
 }
+
+// put stamp on all pages
+$pdf->stamp('tests/watermark.pdf');
 
 $pdf->download();
 $pdf->download('tests/output.pdf');
