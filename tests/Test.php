@@ -14,8 +14,7 @@ class Test extends \PHPUnit\Framework\TestCase
                 'placeholder1' => 'foo',
                 'placeholder2' => 'bar'
             ]);
-            $pdf
-                ->add('tests/file.pdf')
+            $pdf->add('tests/file.pdf')
                 ->data([
                     'placeholder1' => 'This is a test',
                     'placeholder2' =>
@@ -32,18 +31,16 @@ class Test extends \PHPUnit\Framework\TestCase
                 'placeholder1' => 'foo',
                 'placeholder2' => 'bar'
             ]);
-            $pdf
-                ->add('tests/file.html')
+            $pdf->add('tests/file.html')
                 ->header('tests/header.html', 30)
                 ->footer('tests/footer.html', 30)
                 ->data([
                     'placeholder1' => 'foo',
                     'placeholder2' => 'bar'
                 ]);
-            $pdf
-                ->add(
-                    '<!DOCTYPE html><html><body><div>body with <?php echo $data->placeholder1; ?></div></body></html>'
-                )
+            $pdf->add(
+                '<!DOCTYPE html><html><body><div>body with <?php echo $data->placeholder1; ?></div></body></html>'
+            )
                 ->header(
                     '<!DOCTYPE html><html><body><div style="height:30mm;">header with <?php echo $data->placeholder2; ?></div></body></html>'
                 )
@@ -61,8 +58,7 @@ class Test extends \PHPUnit\Framework\TestCase
 
             $limit = mt_rand(15, 3000);
             foreach (range(0, $limit) as $i) {
-                $pdf
-                    ->add('tests/file.html')
+                $pdf->add('tests/file.html')
                     ->header('tests/header.html', 30)
                     ->footer('tests/footer.html', 30)
                     ->data([
@@ -100,36 +96,31 @@ class Test extends \PHPUnit\Framework\TestCase
             $this->assertEquals($split_count, $limit + 12);
 
             $pdf = new pdfexport();
-            $pdf
-                ->add('<!DOCTYPE html><html><body><div style="height:8000px;"></div></body></html>')
+            $pdf->add('<!DOCTYPE html><html><body><div style="height:8000px;"></div></body></html>')
                 ->limit(2)
                 ->save('tests/output.pdf');
             $this->assertEquals($pdf->count('tests/output.pdf'), 2);
 
             $pdf = new pdfexport();
-            $pdf
-                ->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
+            $pdf->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
                 ->setStandard('PDF/A')
                 ->save('tests/output.pdf');
             $this->assertEquals($pdf->count('tests/output.pdf'), 1);
 
             $pdf = new pdfexport();
-            $pdf
-                ->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
+            $pdf->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
                 ->stamp('tests/watermark.pdf')
                 ->save('tests/output.pdf');
             $this->assertEquals($pdf->count('tests/output.pdf'), 1);
 
             $pdf = new pdfexport();
-            $pdf
-                ->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
+            $pdf->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
                 ->disablePermission(['print', 'edit'])
                 ->save('tests/output.pdf');
             //$this->assertEquals( $pdf->count('tests/output.pdf'), 1 );
 
             $pdf = new pdfexport();
-            $pdf
-                ->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
+            $pdf->add('<!DOCTYPE html><html><body><div>Cool!</div></body></html>')
                 ->setStandard('PDF/A')
                 ->disablePermission(['print', 'edit'])
                 ->save('tests/output.pdf');
@@ -143,6 +134,17 @@ class Test extends \PHPUnit\Framework\TestCase
             } catch (\Exception $e) {
                 $this->assertEquals($e->getMessage(), 'content missing');
             }
+
+            // form fields
+            $this->assertEquals($pdf->getFormFields('tests/file.pdf'), [
+                ['name' => 'placeholder1', 'type' => 'Text'],
+                ['name' => 'placeholder2', 'type' => 'Text']
+            ]);
+            $this->assertEquals($pdf->hasFormField('tests/file.pdf', 'placeholder1'), true);
+            $this->assertEquals($pdf->hasFormField('tests/file.pdf', 'placeholder2'), true);
+            $this->assertEquals($pdf->hasFormField('tests/file.pdf', 'placeholder3'), false);
+            $this->assertEquals($pdf->getFormFields('tests/watermark.pdf'), []);
+            $this->assertEquals($pdf->hasFormField('tests/watermark.pdf', 'placeholder1'), false);
 
             fwrite(
                 STDERR,

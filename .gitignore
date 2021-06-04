@@ -3,3 +3,5 @@
 /vendor/
 /log.txt
 /tests/output.pdf
+/node_modules
+/package-lock.json

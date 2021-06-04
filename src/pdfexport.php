@@ -653,6 +653,53 @@ class pdfexport
         return $pages;
     }
 
+    public function getFormFields($filename)
+    {
+        if (!file_exists($filename)) {
+            $filename = getcwd() . '/' . $filename;
+        }
+        if (!file_exists($filename)) {
+            throw new \Exception('file does not exist');
+        }
+        $return = [];
+        $fields = $this->exec('pdftk', $filename . ' dump_data_fields');
+        if (trim($fields) == '') {
+            return $return;
+        }
+        foreach (explode('---', $fields) as $fields__value) {
+            if (trim($fields__value) == '') {
+                continue;
+            }
+            $return_this = [];
+            foreach (array_reverse(preg_split('/\r\n|\n|\r/', $fields__value)) as $rows__value) {
+                if (trim($rows__value) == '') {
+                    continue;
+                }
+                if (strpos($rows__value, 'FieldName:') !== false) {
+                    $return_this['name'] = trim(str_replace('FieldName:', '', $rows__value));
+                }
+                if (strpos($rows__value, 'FieldType:') !== false) {
+                    $return_this['type'] = trim(str_replace('FieldType:', '', $rows__value));
+                }
+            }
+            if (!empty($return_this)) {
+                $return[] = $return_this;
+            }
+        }
+        return $return;
+    }
+
+    public function hasFormField($filename, $name)
+    {
+        $form_fields = $this->getFormFields($filename);
+        foreach ($form_fields as $form_fields__value) {
+            if ($form_fields__value['name'] === $name) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function split($filename, $chunksize = 1)
     {
         if (!file_exists($filename)) {

@@ -97,6 +97,10 @@ $pdf->add('tests/file.pdf')
         'placeholder3' => 'This is Sonderzeichen ß täst!'
     ]);
 
+// form fields
+$pdf->getFormFields('tests/file.pdf'); // [ ['name' => 'field_name_1', 'type' => 'Text'], ... ]
+$pdf->hasFormField('tests/file.pdf', 'field_name_1') // true
+
 // do the same but grayscale the page
 $pdf->add('tests/file.pdf')
     ->grayscale();
