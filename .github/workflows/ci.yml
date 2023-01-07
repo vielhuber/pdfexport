@@ -25,6 +25,8 @@ jobs:
                   if [ "$RUNNER_OS" == "Linux" ]; then
                        sudo apt-get install pdftk wkhtmltopdf ghostscript imagemagick
 
+                       gs --version
+
                        # cpdf
                        cd /opt/
                        wget https://github.com/coherentgraphics/cpdf-binaries/archive/master.zip
