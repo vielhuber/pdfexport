@@ -23,7 +23,7 @@ jobs:
             - name: Libraries
               run: |
                   if [ "$RUNNER_OS" == "Linux" ]; then
-                       sudo apt-get install pdftk wkhtmltopdf gs imagick cpdf
+                       sudo apt-get install pdftk wkhtmltopdf ghostscript imagick cpdf
                   elif [ "$RUNNER_OS" == "macOS" ]; then
                        brew install coreutils
                   fi
