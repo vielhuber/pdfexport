@@ -24,10 +24,21 @@ jobs:
               run: |
                   if [ "$RUNNER_OS" == "Linux" ]; then
                        sudo apt-get install pdftk wkhtmltopdf ghostscript imagemagick
+
+                       # cpdf
                        cd /opt/
                        wget https://github.com/coherentgraphics/cpdf-binaries/archive/master.zip
                        unzip master.zip
                        mv cpdf-binaries-master/Linux-Intel-64bit/cpdf /usr/local/bin/cpdf
+
+                       # wkhtmltopdf
+                       sudo apt-get install libfontconfig1 libxrender1 xfonts-75dpi xfonts-base
+                       cd /tmp/
+                       mkdir dl
+                       cd dl
+                       wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+                       sudo dpkg -i wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+                       sudo fc-cache -f -v
                   elif [ "$RUNNER_OS" == "macOS" ]; then
                        brew install pdftk wkhtmltopdf ghostscript imagemagick cpdf
                   fi
