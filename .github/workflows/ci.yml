@@ -23,9 +23,11 @@ jobs:
             - name: Libraries
               run: |
                   if [ "$RUNNER_OS" == "Linux" ]; then
-                       sudo apt-get install pdftk wkhtmltopdf ghostscript imagemagick
+                       sudo apt-get install pdftk wkhtmltopdf ghostscript
 
-                       gs --version
+                       # imagemagick
+                       sudo apt-get install imagemagick
+                       sudo sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
 
                        # cpdf
                        cd /opt/
