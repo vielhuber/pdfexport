@@ -23,9 +23,13 @@ jobs:
             - name: Libraries
               run: |
                   if [ "$RUNNER_OS" == "Linux" ]; then
-                       sudo apt-get install pdftk wkhtmltopdf ghostscript imagick cpdf
+                       sudo apt-get install pdftk wkhtmltopdf ghostscript imagemagick
+                       cd /opt/
+                       wget https://github.com/coherentgraphics/cpdf-binaries/archive/master.zip
+                       unzip master.zip
+                       mv cpdf-binaries-master/Linux-Intel-64bit/cpdf /usr/local/bin/cpdf
                   elif [ "$RUNNER_OS" == "macOS" ]; then
-                       brew install pdftk wkhtmltopdf ghostscript imagick cpdf
+                       brew install pdftk wkhtmltopdf ghostscript imagemagick cpdf
                   fi
               shell: bash
 
