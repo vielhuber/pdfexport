@@ -583,6 +583,14 @@ class pdfexport
             file_put_contents($this->filename('txt', 'command'), $command);
             $command = '--read-args-from-stdin < ' . $this->filename('txt', 'command');
         }
+        // suppress output on certain programs
+        if (
+            $program == 'cpdf' ||
+            ($program === 'pdftk' && strpos($command, ' owner_pw ') !== false) ||
+            $program == 'ghostscript'
+        ) {
+            $command .= ' > /dev/null 2>&1';
+        }
         $run .= $command;
         $this->log($run);
         $ret = shell_exec($run);
@@ -663,7 +671,7 @@ class pdfexport
         }
         $return = [];
         $fields = $this->exec('pdftk', $filename . ' dump_data_fields');
-        if (trim($fields) == '') {
+        if ($fields === null || empty($fields) || trim($fields) == '') {
             return $return;
         }
         foreach (explode('---', $fields) as $fields__value) {
@@ -712,6 +720,7 @@ class pdfexport
             throw new \Exception('corrupt chunksize');
         }
         $count = $this->count($filename);
+
         $this->exec(
             'cpdf',
             '-split ' .
@@ -719,7 +728,7 @@ class pdfexport
                 ' -o ' .
                 str_replace('.pdf', '', $filename) .
                 '-' .
-                str_repeat('%', log($count, 10) + 1) .
+                str_repeat('%', floor(log($count, 10)) + 1) .
                 '.pdf -chunk ' .
                 $chunksize
         );
@@ -727,7 +736,10 @@ class pdfexport
         // sometimes cpdf starts at 0
         if (
             file_exists(
-                str_replace('.pdf', '', $filename) . '-' . str_pad(0, log($count, 10) + 1, '0', STR_PAD_LEFT) . '.pdf'
+                str_replace('.pdf', '', $filename) .
+                    '-' .
+                    str_pad(0, floor(log($count, 10)) + 1, '0', STR_PAD_LEFT) .
+                    '.pdf'
             )
         ) {
             $begin = 0;
@@ -740,7 +752,7 @@ class pdfexport
             $filenames[] =
                 str_replace('.pdf', '', $filename) .
                 '-' .
-                str_pad($begin, log($count, 10) + 1, '0', STR_PAD_LEFT) .
+                str_pad($begin, floor(log($count, 10)) + 1, '0', STR_PAD_LEFT) .
                 '.pdf';
             $begin++;
         }
