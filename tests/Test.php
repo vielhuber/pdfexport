@@ -7,7 +7,7 @@ class Test extends \PHPUnit\Framework\TestCase
     function test__pdfexport()
     {
         // run test multiple times
-        for ($test_iteration = 0; $test_iteration < 1; $test_iteration++) {
+        for ($test_iteration = 0; $test_iteration < 10; $test_iteration++) {
             $pdf = new pdfexport();
             $pdf->add('tests/file.pdf');
             $pdf->add('tests/file.pdf')->data([
@@ -56,7 +56,7 @@ class Test extends \PHPUnit\Framework\TestCase
                 '<!DOCTYPE html><html><body><div>current time: <?php echo date(\'Y-m-d\'); ?></div></body></html>'
             );
 
-            $limit = mt_rand(15, 20);
+            $limit = mt_rand(15, 3000);
             foreach (range(0, $limit) as $i) {
                 $pdf->add('tests/file.html')
                     ->header('tests/header.html', 30)
