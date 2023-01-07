@@ -1,3 +1,5 @@
+[![build status](https://github.com/vielhuber/pdfexport/actions/workflows/ci.yml/badge.svg)](https://github.com/vielhuber/pdfexport/actions)
+
 # 🍊 pdfexport 🍊
 
 pdfexport exports pdfs.
