@@ -2,7 +2,7 @@
 
 # 🍊 pdfexport 🍊
 
-pdfexport exports pdfs.
+pdfexport is a powerful php library for pdf generation and manipulation. it combines proven tools like wkhtmltopdf, pdftk, ghostscript and cpdf under a unified, user-friendly api. whether you want to convert html documents to pdfs, merge existing pdfs, fill out forms or add watermarks – pdfexport makes it easy and performant.
 
 ## Features
 
