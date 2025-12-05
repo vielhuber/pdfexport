@@ -3,7 +3,12 @@ name: CI
 env:
     CI: true
 
-on: [push]
+on:
+    workflow_dispatch:
+    push:
+        tags:
+            - 'v*'
+            - '[0-9]*'
 
 jobs:
     build-test:
@@ -12,7 +17,7 @@ jobs:
         strategy:
             matrix:
                 operating-system: ['ubuntu-latest']
-                php-versions: ['7.4', '8.0', '8.1']
+                php-versions: ['7.4', '8.0', '8.1', '8.2', '8.3']
 
         name: ${{ matrix.operating-system }} (PHP ${{ matrix.php-versions }})
 
@@ -22,10 +27,11 @@ jobs:
 
             - name: Libraries
               run: |
-                  sudo apt-get install pdftk wkhtmltopdf ghostscript
+                  sudo apt-get update
+                  sudo apt-get install -y pdftk wkhtmltopdf ghostscript
 
                   # imagemagick
-                  sudo apt-get install imagemagick
+                  sudo apt-get install -y imagemagick
                   sudo sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
 
                   # cpdf
@@ -35,7 +41,7 @@ jobs:
                   mv cpdf-binaries-master/Linux-Intel-64bit/cpdf /usr/local/bin/cpdf
 
                   # wkhtmltopdf
-                  sudo apt-get install libfontconfig1 libxrender1 xfonts-75dpi xfonts-base
+                  sudo apt-get install -y libfontconfig1 libxrender1 xfonts-75dpi xfonts-base
                   cd /tmp/
                   mkdir dl
                   cd dl
