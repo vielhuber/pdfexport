@@ -1,4 +1,10 @@
 [![build status](https://github.com/vielhuber/pdfexport/actions/workflows/ci.yml/badge.svg)](https://github.com/vielhuber/pdfexport/actions)
+[![GitHub Tag](https://img.shields.io/github/v/tag/vielhuber/pdfexport)](https://github.com/vielhuber/pdfexport/tags)
+[![Code Style](https://img.shields.io/badge/code_style-psr--12-ff69b4.svg)](https://www.php-fig.org/psr/psr-12/)
+[![License](https://img.shields.io/github/license/vielhuber/pdfexport)](https://github.com/vielhuber/pdfexport/blob/main/LICENSE.md)
+[![Last Commit](https://img.shields.io/github/last-commit/vielhuber/pdfexport)](https://github.com/vielhuber/pdfexport/commits)
+[![PHP Version Support](https://img.shields.io/packagist/php-v/vielhuber/pdfexport)](https://packagist.org/packages/vielhuber/pdfexport)
+[![Packagist Downloads](https://img.shields.io/packagist/dt/vielhuber/pdfexport)](https://packagist.org/packages/vielhuber/pdfexport)
 
 # 🍊 pdfexport 🍊
 
