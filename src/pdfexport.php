@@ -4,17 +4,17 @@ namespace vielhuber\pdfexport;
 
 class pdfexport
 {
-    private $data = [];
-    private $settings = [];
-    private $session = null;
+    private array $data = [];
+    private array $settings = [];
+    private ?string $session = null;
 
     public function __construct()
     {
-        file_put_contents($this->filename('txt', 'log'), '');
         $this->session = uniqid();
+        file_put_contents($this->filename('txt', 'log'), '');
     }
 
-    public function add($content)
+    public function add(?string $content): self
     {
         if ($content === null || $content == '') {
             throw new \Exception('content missing');
@@ -45,7 +45,7 @@ class pdfexport
         return $this;
     }
 
-    public function data($data)
+    public function data(array $data): self
     {
         if (empty($this->data)) {
             throw new \Exception('you first need to add pages');
@@ -61,19 +61,19 @@ class pdfexport
         return $this;
     }
 
-    public function header($content, $height = 30)
+    public function header(?string $content, ?int $height = 30): self
     {
         $this->header_footer('header', $content, $height);
         return $this;
     }
 
-    public function footer($content, $height = 30)
+    public function footer(?string $content, ?int $height = 30): self
     {
         $this->header_footer('footer', $content, $height);
         return $this;
     }
 
-    private function header_footer($type, $content, $height)
+    private function header_footer(string $type, ?string $content, ?int $height): void
     {
         if (empty($this->data)) {
             throw new \Exception('you first need to add pages');
@@ -108,7 +108,7 @@ class pdfexport
         ];
     }
 
-    public function format($size = null, $orientation = null)
+    public function format(?string $size = null, ?string $orientation = null): self
     {
         if ($size === null && $orientation === null) {
             throw new \Exception('missing size or orientation');
@@ -158,7 +158,7 @@ class pdfexport
         return $this;
     }
 
-    public function limit($pages)
+    public function limit(int $pages): self
     {
         if (empty($this->data)) {
             throw new \Exception('you first need to add pages');
@@ -170,7 +170,7 @@ class pdfexport
         return $this;
     }
 
-    public function setStandard($standard)
+    public function setStandard(string $standard): self
     {
         if (empty($this->data)) {
             throw new \Exception('you first need to add pages');
@@ -182,7 +182,7 @@ class pdfexport
         return $this;
     }
 
-    public function stamp($filename)
+    public function stamp(string $filename): self
     {
         if (empty($this->data)) {
             throw new \Exception('you first need to add pages');
@@ -197,7 +197,7 @@ class pdfexport
         return $this;
     }
 
-    public function disablePermission($permissions)
+    public function disablePermission(array $permissions): self
     {
         if (empty($this->data)) {
             throw new \Exception('you first need to add pages');
@@ -209,7 +209,7 @@ class pdfexport
         return $this;
     }
 
-    public function grayscale($quality = null)
+    public function grayscale(?int $quality = null): self
     {
         if (empty($this->data)) {
             throw new \Exception('you first need to add pages');
@@ -230,7 +230,7 @@ class pdfexport
         return $this;
     }
 
-    public function download($filename = null)
+    public function download(?string $filename = null): void
     {
         $this->process();
         if ($filename === null) {
@@ -245,46 +245,43 @@ class pdfexport
         die();
     }
 
-    public function save($filename = null)
+    public function save(?string $filename = null): string
     {
         $this->process();
         if ($filename === null) {
             $filename = date('Y-m-d_H-i-s', strtotime('now')) . '.pdf';
         }
         copy($this->filename('pdf', 'final'), $filename);
-        if ($filename === null) {
-            return $filename;
-        }
-        return true;
+        return $filename;
     }
 
-    public function base64()
+    public function base64(): string
     {
         $this->process();
         return 'data:application/pdf;base64,' . base64_encode(file_get_contents($this->filename('pdf', 'final')));
     }
 
-    public function content()
+    public function content(): string
     {
         $this->process();
         return file_get_contents($this->filename('pdf', 'final'));
     }
 
-    public function debug()
+    public function debug(): void
     {
         $this->process();
         echo '<hr/>';
         echo '<hr/>';
         echo '<pre>';
         array_walk_recursive($this->data, function (&$v) {
-            $v = htmlspecialchars($v);
+            $v = htmlspecialchars((string) $v);
         });
         var_dump($this->data);
         echo '</pre>';
         die();
     }
 
-    private function process()
+    private function process(): void
     {
         $commands = [];
         $files = [];
@@ -332,6 +329,7 @@ class pdfexport
             $target = $this->filename('pdf', 'final');
             $source = $this->filename('pdf');
             copy($target, $source);
+            $allow = '';
             if (
                 in_array('print', $this->settings['disabled_permissions']) &&
                 in_array('edit', $this->settings['disabled_permissions'])
@@ -349,7 +347,7 @@ class pdfexport
         }
     }
 
-    private function generateAndRunNextMergedCommand(&$pointer, &$files)
+    private function generateAndRunNextMergedCommand(int &$pointer, array &$files): bool
     {
         // end of data
         if (!isset($this->data[$pointer])) {
@@ -383,7 +381,7 @@ class pdfexport
             foreach ($current['data'] as $data__key => $data__value) {
                 $fdf[] =
                     '<</T(' .
-                    $data__key .
+                    str_replace(')', '\)', str_replace('(', '\(', $data__key)) .
                     ')/V(' .
                     str_replace(')', '\)', str_replace('(', '\(', $data__value)) .
                     ')>>';
@@ -394,7 +392,7 @@ class pdfexport
             $fdf[] = '<</Root 1 0 R>>';
             $fdf[] = '%%EOF';
             $fdf = implode("\n", $fdf);
-            file_put_contents($this->filename('fdf', $pointer), utf8_decode($fdf));
+            file_put_contents($this->filename('fdf', $pointer), mb_convert_encoding($fdf, 'ISO-8859-1', 'UTF-8'));
             $this->exec(
                 'pdftk',
                 $current['filename'] .
@@ -557,7 +555,7 @@ class pdfexport
         return true;
     }
 
-    private function exec($program, $command)
+    private function exec(string $program, string $command): ?string
     {
         if (!in_array($program, ['wkhtmltopdf', 'pdftk', 'ghostscript', 'imagemagick', 'cpdf'])) {
             throw new \Exception('unknown program');
@@ -597,7 +595,7 @@ class pdfexport
         return $ret;
     }
 
-    private function log($str)
+    private function log(string $str): void
     {
         if (!file_exists($this->filename('txt', 'log'))) {
             file_put_contents($this->filename('txt', 'log'), '');
@@ -608,7 +606,7 @@ class pdfexport
         );
     }
 
-    private function os()
+    private function os(): string
     {
         if (stristr(PHP_OS, 'DAR')) {
             return 'mac';
@@ -622,7 +620,7 @@ class pdfexport
         return 'unknown';
     }
 
-    private function strposx($haystack, $needle)
+    private function strposx(string $haystack, string $needle): array
     {
         $positions = [];
         $last_pos = 0;
@@ -633,7 +631,7 @@ class pdfexport
         return $positions;
     }
 
-    private function filename($extension, $id = null)
+    private function filename(string $extension, $id = null): string
     {
         if (!in_array($extension, ['html', 'pdf', 'fdf', 'sh', 'bat', 'txt'])) {
             throw new \Exception('unknown extension');
@@ -644,7 +642,7 @@ class pdfexport
         return sys_get_temp_dir() . '/' . md5($this->session . '_' . $id) . '.' . $extension;
     }
 
-    public function count($filename)
+    public function count(string $filename): int
     {
         if (!file_exists($filename)) {
             $filename = getcwd() . '/' . $filename;
@@ -661,7 +659,7 @@ class pdfexport
         return $pages;
     }
 
-    public function getFormFields($filename)
+    public function getFormFields(string $filename): array
     {
         if (!file_exists($filename)) {
             $filename = getcwd() . '/' . $filename;
@@ -697,7 +695,7 @@ class pdfexport
         return $return;
     }
 
-    public function hasFormField($filename, $name)
+    public function hasFormField(string $filename, string $name): bool
     {
         $form_fields = $this->getFormFields($filename);
         foreach ($form_fields as $form_fields__value) {
@@ -708,7 +706,7 @@ class pdfexport
         return false;
     }
 
-    public function split($filename, $chunksize = 1)
+    public function split(string $filename, int $chunksize = 1): array
     {
         if (!file_exists($filename)) {
             $filename = getcwd() . '/' . $filename;
