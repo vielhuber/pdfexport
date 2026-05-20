@@ -124,6 +124,10 @@ $pdf->add('tests/file.html');
 $pdf->add('tests/file.html')
     ->format('a3','landscape');
 
+// add a html file with custom margins in mm
+$pdf->add('tests/file.html')
+    ->margin(10, 10, 17, 17);
+
 // add a html file and replace placeholders (<?php echo $data->placeholder; ?>)
 $pdf->add('tests/file.html')
     ->data([

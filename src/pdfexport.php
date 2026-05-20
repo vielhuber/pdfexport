@@ -158,6 +158,36 @@ class pdfexport
         return $this;
     }
 
+    public function margin(?int $top = null, ?int $bottom = null, ?int $left = null, ?int $right = null): self
+    {
+        if ($top === null && $bottom === null && $left === null && $right === null) {
+            throw new \Exception('missing margin');
+        }
+        foreach ([$top, $bottom, $left, $right] as $margin__value) {
+            if ($margin__value !== null && $margin__value < 0) {
+                throw new \Exception('corrupt margin');
+            }
+        }
+        if ($this->data[count($this->data) - 1]['type'] !== 'html') {
+            throw new \Exception('you only can add a margin to html files');
+        }
+        $margin = [];
+        if ($top !== null) {
+            $margin['top'] = $top;
+        }
+        if ($bottom !== null) {
+            $margin['bottom'] = $bottom;
+        }
+        if ($left !== null) {
+            $margin['left'] = $left;
+        }
+        if ($right !== null) {
+            $margin['right'] = $right;
+        }
+        $this->data[count($this->data) - 1]['margin'] = $margin;
+        return $this;
+    }
+
     public function limit(int $pages): self
     {
         if (empty($this->data)) {
@@ -437,6 +467,14 @@ class pdfexport
                 ) {
                     $loop = false;
                 } elseif (
+                    (array_key_exists('margin', $current) &&
+                        array_key_exists('margin', $this->data[$pointer]) &&
+                        $current['margin'] != $this->data[$pointer]['margin']) ||
+                    (array_key_exists('margin', $current) && !array_key_exists('margin', $this->data[$pointer])) ||
+                    (!array_key_exists('margin', $current) && array_key_exists('margin', $this->data[$pointer]))
+                ) {
+                    $loop = false;
+                } elseif (
                     (array_key_exists('header', $current) &&
                         array_key_exists('header', $this->data[$pointer]) &&
                         $current['header']['height'] != $this->data[$pointer]['header']['height']) ||
@@ -492,16 +530,28 @@ class pdfexport
             $command .= '--disable-smart-shrinking ';
             if (array_key_exists('header', $current)) {
                 $command .= '--margin-top "' . $current['header']['height'] . 'mm" ';
+            } elseif (array_key_exists('margin', $current) && array_key_exists('top', $current['margin'])) {
+                $command .= '--margin-top "' . $current['margin']['top'] . 'mm" ';
             } else {
                 $command .= '--margin-top "0mm" ';
             }
             if (array_key_exists('footer', $current)) {
                 $command .= '--margin-bottom "' . $current['footer']['height'] . 'mm" ';
+            } elseif (array_key_exists('margin', $current) && array_key_exists('bottom', $current['margin'])) {
+                $command .= '--margin-bottom "' . $current['margin']['bottom'] . 'mm" ';
             } else {
                 $command .= '--margin-bottom "0mm" ';
             }
-            $command .= '--margin-left "0mm" ';
-            $command .= '--margin-right "0mm" ';
+            if (array_key_exists('margin', $current) && array_key_exists('left', $current['margin'])) {
+                $command .= '--margin-left "' . $current['margin']['left'] . 'mm" ';
+            } else {
+                $command .= '--margin-left "0mm" ';
+            }
+            if (array_key_exists('margin', $current) && array_key_exists('right', $current['margin'])) {
+                $command .= '--margin-right "' . $current['margin']['right'] . 'mm" ';
+            } else {
+                $command .= '--margin-right "0mm" ';
+            }
             if (array_key_exists('format', $current) && array_key_exists('orientation', $current['format'])) {
                 $command .= '--orientation "' . ucfirst(mb_strtolower($current['format']['orientation'])) . '" ';
             } else {

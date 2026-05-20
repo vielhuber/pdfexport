@@ -27,6 +27,7 @@ class Test extends \PHPUnit\Framework\TestCase
             $pdf->add('tests/file.pdf')->grayscale(80);
             $pdf->add('tests/file.html');
             $pdf->add('tests/file.html')->format('a3', 'landscape');
+            $pdf->add('tests/file.html')->margin(10, 10, 17, 17);
             $pdf->add('tests/file.html')->data([
                 'placeholder1' => 'foo',
                 'placeholder2' => 'bar'
