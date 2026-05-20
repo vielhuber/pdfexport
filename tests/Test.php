@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 use vielhuber\pdfexport\pdfexport;
 
@@ -76,10 +77,10 @@ class Test extends \PHPUnit\Framework\TestCase
             $this->assertEquals(
                 in_array($splitted_filenames[0], [
                     'tests/output-' .
-                    str_pad(0, floor(log(count($splitted_filenames), 10)) + 1, '0', STR_PAD_LEFT) .
+                    str_pad('0', (int) floor(log(count($splitted_filenames), 10)) + 1, '0', STR_PAD_LEFT) .
                     '.pdf',
                     'tests/output-' .
-                    str_pad(1, floor(log(count($splitted_filenames), 10)) + 1, '0', STR_PAD_LEFT) .
+                    str_pad('1', (int) floor(log(count($splitted_filenames), 10)) + 1, '0', STR_PAD_LEFT) .
                     '.pdf'
                 ]),
                 true

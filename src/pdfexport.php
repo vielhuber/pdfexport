@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace vielhuber\pdfexport;
 
@@ -372,7 +373,7 @@ class pdfexport
             }
             $this->exec(
                 'pdftk',
-                $source . ' output ' . $target . ' owner_pw "' . md5(uniqid(mt_rand(), true)) . '"' . $allow
+                $source . ' output ' . $target . ' owner_pw "' . md5(uniqid((string) mt_rand(), true)) . '"' . $allow
             );
         }
     }
@@ -776,7 +777,7 @@ class pdfexport
                 ' -o ' .
                 str_replace('.pdf', '', $filename) .
                 '-' .
-                str_repeat('%', floor(log($count, 10)) + 1) .
+                str_repeat('%', (int) floor(log($count, 10)) + 1) .
                 '.pdf -chunk ' .
                 $chunksize
         );
@@ -786,7 +787,7 @@ class pdfexport
             file_exists(
                 str_replace('.pdf', '', $filename) .
                     '-' .
-                    str_pad(0, floor(log($count, 10)) + 1, '0', STR_PAD_LEFT) .
+                    str_pad('0', (int) floor(log($count, 10)) + 1, '0', STR_PAD_LEFT) .
                     '.pdf'
             )
         ) {
@@ -800,7 +801,7 @@ class pdfexport
             $filenames[] =
                 str_replace('.pdf', '', $filename) .
                 '-' .
-                str_pad($begin, floor(log($count, 10)) + 1, '0', STR_PAD_LEFT) .
+                str_pad((string) $begin, (int) floor(log($count, 10)) + 1, '0', STR_PAD_LEFT) .
                 '.pdf';
             $begin++;
         }
