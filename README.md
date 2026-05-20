@@ -128,6 +128,10 @@ $pdf->add('tests/file.html')
 $pdf->add('tests/file.html')
     ->margin(10, 10, 17, 17);
 
+// add a html file with wkhtmltopdf smart shrinking enabled
+$pdf->add('tests/file.html')
+    ->smartShrinking();
+
 // add a html file and replace placeholders (<?php echo $data->placeholder; ?>)
 $pdf->add('tests/file.html')
     ->data([

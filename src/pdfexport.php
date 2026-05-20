@@ -189,6 +189,15 @@ class pdfexport
         return $this;
     }
 
+    public function smartShrinking(bool $enabled = true): self
+    {
+        if ($this->data[count($this->data) - 1]['type'] !== 'html') {
+            throw new \Exception('you only can set smart shrinking on html files');
+        }
+        $this->data[count($this->data) - 1]['smart_shrinking'] = $enabled;
+        return $this;
+    }
+
     public function limit(int $pages): self
     {
         if (empty($this->data)) {
@@ -476,6 +485,16 @@ class pdfexport
                 ) {
                     $loop = false;
                 } elseif (
+                    (array_key_exists('smart_shrinking', $current) &&
+                        array_key_exists('smart_shrinking', $this->data[$pointer]) &&
+                        $current['smart_shrinking'] != $this->data[$pointer]['smart_shrinking']) ||
+                    (array_key_exists('smart_shrinking', $current) &&
+                        !array_key_exists('smart_shrinking', $this->data[$pointer])) ||
+                    (!array_key_exists('smart_shrinking', $current) &&
+                        array_key_exists('smart_shrinking', $this->data[$pointer]))
+                ) {
+                    $loop = false;
+                } elseif (
                     (array_key_exists('header', $current) &&
                         array_key_exists('header', $this->data[$pointer]) &&
                         $current['header']['height'] != $this->data[$pointer]['header']['height']) ||
@@ -528,7 +547,9 @@ class pdfexport
             $pointer--;
 
             $command = '';
-            $command .= '--disable-smart-shrinking ';
+            if (($current['smart_shrinking'] ?? false) !== true) {
+                $command .= '--disable-smart-shrinking ';
+            }
             if (array_key_exists('header', $current)) {
                 $command .= '--margin-top "' . $current['header']['height'] . 'mm" ';
             } elseif (array_key_exists('margin', $current) && array_key_exists('top', $current['margin'])) {

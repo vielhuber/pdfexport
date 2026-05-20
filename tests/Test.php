@@ -29,6 +29,7 @@ class Test extends \PHPUnit\Framework\TestCase
             $pdf->add('tests/file.html');
             $pdf->add('tests/file.html')->format('a3', 'landscape');
             $pdf->add('tests/file.html')->margin(10, 10, 17, 17);
+            $pdf->add('tests/file.html')->smartShrinking();
             $pdf->add('tests/file.html')->data([
                 'placeholder1' => 'foo',
                 'placeholder2' => 'bar'
@@ -69,7 +70,7 @@ class Test extends \PHPUnit\Framework\TestCase
                     ]);
             }
             $pdf->save('tests/output.pdf');
-            $expected_page_count = $limit + 13;
+            $expected_page_count = $limit + 14;
             $this->assertEquals($expected_page_count, $pdf->count('tests/output.pdf'));
 
             $splitted_filenames = $pdf->split('tests/output.pdf', 1);
