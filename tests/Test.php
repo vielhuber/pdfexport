@@ -68,10 +68,11 @@ class Test extends \PHPUnit\Framework\TestCase
                     ]);
             }
             $pdf->save('tests/output.pdf');
-            $this->assertEquals($pdf->count('tests/output.pdf'), $limit + 12);
+            $expected_page_count = $limit + 13;
+            $this->assertEquals($expected_page_count, $pdf->count('tests/output.pdf'));
 
             $splitted_filenames = $pdf->split('tests/output.pdf', 1);
-            $this->assertEquals(count($splitted_filenames), $limit + 12);
+            $this->assertEquals($expected_page_count, count($splitted_filenames));
             $this->assertEquals(
                 in_array($splitted_filenames[0], [
                     'tests/output-' .
@@ -84,9 +85,9 @@ class Test extends \PHPUnit\Framework\TestCase
                 true
             );
             $this->assertEquals(
-                in_array($splitted_filenames[$limit + 12 - 1], [
-                    'tests/output-' . ($limit + 12 - 1) . '.pdf',
-                    'tests/output-' . ($limit + 12) . '.pdf'
+                in_array($splitted_filenames[$expected_page_count - 1], [
+                    'tests/output-' . ($expected_page_count - 1) . '.pdf',
+                    'tests/output-' . $expected_page_count . '.pdf'
                 ]),
                 true
             );
@@ -98,7 +99,7 @@ class Test extends \PHPUnit\Framework\TestCase
                     $split_count++;
                 }
             }
-            $this->assertEquals($split_count, $limit + 12);
+            $this->assertEquals($expected_page_count, $split_count);
 
             $pdf = new pdfexport();
             $pdf->add('<!DOCTYPE html><html><body><div style="height:8000px;"></div></body></html>')
